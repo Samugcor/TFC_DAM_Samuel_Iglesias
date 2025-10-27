@@ -1,0 +1,14 @@
+.time-line-editor{
+    flex-grow: 1;
+    height: 100vh;
+}
+.editor-body{
+    display: flex;
+}
+.canvas-editor{
+    flex-grow: 1;
+    border: 1px dashed lightgreen;
+}
+.event-editor{
+    border: 1px dashed lightgreen;
+}

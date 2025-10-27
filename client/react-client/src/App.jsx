@@ -5,6 +5,7 @@ import LogIn from './LogIn';
 import './styles/App.css';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import HomePage from './HomePage';
+import TimeLine from './TimeLine';
 
 function App() {
 
@@ -13,6 +14,8 @@ function App() {
       <Routes>
         <Route path="/" element={< LogIn/>} />
         <Route path="/home" element={< HomePage/>} />
+        <Route path='/timeline' element={<TimeLine/>} />
+        <Route path='/timeline/:timelineID' element={<TimeLine/>} />
       </Routes>
     </BrowserRouter>
   )

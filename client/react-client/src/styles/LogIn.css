@@ -63,16 +63,13 @@
 /* Button */
 .login-button {
   background: linear-gradient(to right, #38bdf8, #a855f7);
-  color: white;
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 9999px;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: opacity 0.2s ease;
+  
 }
-
+.guest-button {
+  background: linear-gradient(to right, #38bdf8, #a855f7);
+  width: 100%;
+  
+}
 .login-button:hover {
   opacity: 0.9;
 }
