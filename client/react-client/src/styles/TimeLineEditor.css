@@ -4,11 +4,14 @@
 }
 .editor-body{
     display: flex;
+    border: 1px solid rgb(71, 43, 212);
 }
 .canvas-editor{
     flex-grow: 1;
-    border: 1px dashed lightgreen;
+    border: 1px dashed rgb(227, 65, 65);
+    min-width: 0;    /* IMPORTANT for flex children */
+    min-height: 0;   /* avoids infinite expansion */
 }
 .event-editor{
-    border: 1px dashed lightgreen;
+    border: 1px dashed rgb(36, 218, 36);
 }

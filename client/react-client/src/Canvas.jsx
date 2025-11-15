@@ -1,147 +1,328 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
+import './styles/Canvas.css';
 
+/* Canvas:
+ * - timeline: Timeline object
+ * - options: { background, eventRadius, ... } (optional)
+ * - onViewportChange: optional callback to communicate viewport to parent (optional)
+ */
 
-function Canvas() {
+export default function Canvas({ timeline, options = {}, onViewportChange }) {
+
+  //References--------------------------------------------------------
 
   const canvasRef = useRef(null);
+  let ctxRef = useRef(null);// context
   const viewPort = useRef({ x: 0, y:0 , scale: 1 });
 
-  const [vTData, setVTData] = useState(viewPort.current);
+  const dprRef = useRef(window.devicePixelRatio || 1);// 📑 dpr (Device Pixel Ratio) is important because it can affect crispines if the user changes the aplication between screens or zooms in the browser
 
-  let ctx = useRef(null);
+  //🟡const [vTData, setVTData] = useState(viewPort.current);
 
-  const previousX = useRef(0);
-  const previousY = useRef(0);  
-  let dragging = useRef(false);
+ // interaction refs
+  const dragging = useRef(false);
+  const lastPointer = useRef({ x: 0, y: 0 });
 
-  /* 📑APUNTES
-  * When your component is added to the DOM, React will run your setup function. 
-  * After every re-render with changed dependencies, React will first run the cleanup function (if you provided it) 
-  * with the old values, and then run your setup function with the new values. 
-  * After your component is removed from the DOM, React will run your cleanup function. 
-  * */
-  useEffect(()=>{
-    // los guardamos en variables porque el DOM ya no está disponible a la hora de desmontar los listeners
+  // requestFrameAnimation scheduling
+  const rafRef = useRef(null);
+  const needsRedraw = useRef(true);
+
+  //Canvas configuration settings ------------------------------------
+  const cfg = {
+    background: options.background || "#fff",
+    eventRadius: options.eventRadius || 6,
+    tickColor: options.tickColor || "#666",
+    labelFont: options.labelFont || "12px sans-serif",
+    timelineColor: options.timelineColor || "#222",
+    ...options,
+  };
+
+  //Sizing -----------------------------------------------------------
+  const resizeCanvasToDisplaySize = useCallback(() => { // 📑 UseCallback: to memoize a function so that it keeps the same reference between renders.
     const canvas = canvasRef.current;
-    //Necesitamos que los canvas esten cargados en el DOM antes de pedir su contexto.
-    ctx.current = canvasRef.current.getContext('2d');
-    //Tenemos que usar esta forma de listener porque los que usa react de normal son pasivos, y no nos dejan cancelar el comportamiento predeterminado.
-    canvasRef.current.addEventListener("wheel", handleMouseWheel, {passive: false});
+    if (!canvas) return;
+    const parent = canvas.parentElement;
+    if (!parent) return;
 
-    render(ctx.current);
+    const rect = parent.getBoundingClientRect();
+    const cssWidth = Math.max(1, Math.floor(rect.width));
+    const cssHeight = Math.max(1, Math.floor(rect.height));
 
-    //La función que limpia cuando se desmonta el componente, aquí deberemos eliminar los listeners que hayamos puesto para que no se dupliquen si se vuelve a montar el componente.
-    return () => {
-      canvas.removeEventListener("wheel", handleMouseWheel, {passive: false});
-    };
+    const dpr = window.devicePixelRatio || 1;
+    dprRef.current = dpr;
 
-  },[]);
+    const displayWidth = Math.floor(cssWidth * dpr);
+    const displayHeight = Math.floor(cssHeight * dpr);
 
-  
-  //Canvas methods
-  const drawRectangle = (ctx, x, y, width, height, color) => {
-    ctx.fillStyle = color;
-    ctx.fillRect(x, y, width, height)
-
-  }
-  const clearCanvas = (ctx)=>{
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  }
-
-  //Render
-  const render = (ctx) =>{
-    const vt = viewPort.current;
-    clearCanvas(ctx);
-    drawRectangle(ctx, toVirtualX(0), toVirtualY(0), 100 * vt.scale, 100 * vt.scale, 'red');
-    drawRectangle(ctx, toVirtualX(200), toVirtualY(200), 100 * vt.scale, 100 * vt.scale, 'blue');
-  }
-
-  //Conversiones
-  const toVirtualX = (x)=>{
-    return x * viewPort.current.scale + viewPort.current.x;
-  }
-  const toVirtualY = (y)=>{
-    return y * viewPort.current.scale + viewPort.current.y;
-  }
-  const toLocalX =(x) => {
-    return x / viewPort.current.scale - viewPort.current.x;
-  }
-  const toLocalY =(y) => {
-    return y / viewPort.current.scale - viewPort.current.y;
-  }
-
-  //Panning
-
-  const updateVTPanning = (e, vt)=> {
-    const localX = e.clientX;  
-    const localY = e.clientY;    
-
-    vt.current.x += localX - previousX.current;
-    vt.current.y += localY - previousY.current;
-
-    previousX.current = localX;
-    previousY.current = localY;
-
-  }
-
-  //Zooming
-
-  const updateVTZooming = (e, vt, canvas) =>{
-    const rect = canvas.getBoundingClientRect();
-    const localX = e.clientX - rect.left;  
-    const localY = e.clientY - rect.top;
-
-    const newScale = vt.current.scale * (Math.exp(-e.deltaY * 0.001));
-    const newX = localX - (localX - vt.current.x) * (newScale / vt.current.scale);
-    const newY = localY - (localY - vt.current.y) * (newScale / vt.current.scale);
-
-    vt.current.x = newX;
-    vt.current.y = newY;
-    vt.current.scale = newScale;
-
-  }
-
-  //Eventos
-
-  const handleMouseDown = (e) =>{
-    dragging.current = true;
-    previousX.current= e.clientX;      
-    previousY.current= e.clientY;    
-
-    e.target.addEventListener('mousemove', handleMouseMove);
-  }
-
-  const handleMouseUp = (e) =>{
-    dragging.current = false;
-  }
-
-  const handleMouseMove = (e) =>{
-    if (!dragging.current) return;
-
-    if (e.target.id == 'canvas') {
-      updateVTPanning(e, viewPort);
-      render(ctx.current);
-      setVTData({...viewPort.current});
+    if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+      canvas.width = displayWidth;
+      canvas.height = displayHeight;
+      
+      // set transform so drawing coordinates are in css pixels * dpr
+      ctxRef.current = canvas.getContext("2d");
+      ctxRef.current.setTransform(dpr, 0, 0, dpr, 0, 0);
+      scheduleRedraw();
     }
-    
+  }, []);
+
+  // rAF stuff -------------------------------------------------------
+  function scheduleRedraw() {
+    needsRedraw.current = true;
+    if (rafRef.current == null) {
+      rafRef.current = window.requestAnimationFrame(() => {
+        rafRef.current = null;
+        if (needsRedraw.current) {
+          needsRedraw.current = false;
+          draw();
+        }
+      });
+    }
   }
 
-  const handleMouseWheel = (e) =>{
+  // Coordinate conversion -------------------------------------------
+  //🟡 Hay que revisar todo el tema de los paddings porque no se yo
+  function normalizedToCanvasX(norm) {
+    const canvas = canvasRef.current;
+    if (!canvas) return 0;
+
+    const cssW = canvas.clientWidth;
+    const basePad = 40; // desired padding at scale 1
+    const pad = basePad / viewPort.current.scale; // adaptive padding
+
+    const trackW = Math.max(basePad, cssW - basePad * 2 / viewPort.current.scale);
+    const x = pad + norm * trackW;
+
+    return (x + viewPort.current.x) * viewPort.current.scale;
+  }
+  
+  function canvasToNormalizedX(canvasX) {
+    const canvas = canvasRef.current;
+    if (!canvas) return 0;
+
+    const cssW = canvas.clientWidth;
+    const basePad = 40;
+    const pad = basePad / viewPort.current.scale; 
+    const trackW = Math.max(basePad, cssW - basePad * 2 / viewPort.current.scale);
+
+    const untransformed = canvasX / viewPort.current.scale - viewPort.current.x;
+    const norm = (untransformed - pad) / trackW;
+    return norm;
+  }
+
+  function normalizedToCanvasY(normY) {
+    const canvas = canvasRef.current;
+    if (!canvas) return 0;
+
+    const cssH = canvas.clientHeight;
+    const basePad = 20; 
+    const pad = basePad / viewPort.current.scale; 
+
+    const trackH = Math.max(basePad, cssH - basePad * 2 / viewPort.current.scale);
+    const y = pad + normY * trackH;
+
+    return (y + viewPort.current.y) * viewPort.current.scale;
+  }
+
+  function canvasToNormalizedY(canvasY) {
+    const canvas = canvasRef.current;
+    if (!canvas) return 0;
+
+    const cssH = canvas.clientHeight;
+    const basePad = 20;
+    const pad = basePad / viewPort.current.scale; 
+    const trackH = Math.max(basePad, cssH - basePad * 2 / viewPort.current.scale);
+
+    const untransformed = canvasY / viewPort.current.scale - viewPort.current.y;
+    const normY = (untransformed - pad) / trackH;
+    return normY;
+  }
+
+  // Drawing base -----------------------------------------------------
+  function clear(ctx) {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transform to clear whole buffer
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.restore();
+  }
+
+  function drawTimelineLine(ctx) {
+    const canvas = canvasRef.current;
+    if (!canvas || !timeline) return;
+    const trackY = (canvas.clientHeight / 2 + viewPort.current.y) * viewPort.current.scale;
+
+    ctx.save();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = cfg.timelineColor;
+    ctx.beginPath();
+    const startX = normalizedToCanvasX(0);
+    const endX = normalizedToCanvasX(1);
+    ctx.moveTo(startX, trackY);
+    ctx.lineTo(endX, trackY);
+    ctx.stroke();
+    ctx.restore();
+
+    return trackY;
+  }
+
+  function drawEvents(ctx, trackY) {
+    if (!timeline) return;
+    const events = timeline.getSortedEvents();
+    ctx.save();
+    events.forEach(ev => {
+      const norm = timeline.normalizedPositionForYear(ev.year);
+      const x = normalizedToCanvasX(norm);
+      const y = trackY;
+    
+      // marker
+      ctx.beginPath();
+      ctx.fillStyle = ev.color || "#1976d2";
+      ctx.arc(x, y, cfg.eventRadius, 0, Math.PI * 2);
+      ctx.fill();
+    
+      // label
+      ctx.font = cfg.labelFont;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      const label = ev.title || ev.year;
+      ctx.fillStyle = "#111";
+      ctx.fillText(label, x, y + cfg.eventRadius + 6);
+    });
+    ctx.restore();
+  }
+
+  function draw() {
+    const ctx = ctxRef.current;
+    if (!ctx) return;
+    // clear full buffer (note ctx.setTransform has been set to DPR earlier)
+    clear(ctx);
+
+    // background
+    const canvas = canvasRef.current;
+    const cssW = canvas.clientWidth;
+    const cssH = canvas.clientHeight;
+    ctx.save();
+    ctx.fillStyle = cfg.background;
+    ctx.fillRect(0, 0, cssW, cssH);
+    ctx.restore();
+
+    const trackY = drawTimelineLine(ctx) || 60;
+    drawEvents(ctx, trackY);
+  }
+
+  // Draw actions ------------------------------------------------
+  // Interaction handlers ----------------------------------------
+  function handlePointerDown(e) {
+    dragging.current = true;
+    lastPointer.current = { x: e.clientX, y: e.clientY };
+    e.target.setPointerCapture?.(e.pointerId);
+  }
+
+  function handlePointerMove(e) {
+    if (!dragging.current) return;
+    const dx = e.clientX - lastPointer.current.x;
+    const dy = e.clientY - lastPointer.current.y;
+    // update viewport: pan uses pixels, but respect scale
+    viewPort.current.x += dx / viewPort.current.scale;
+    viewPort.current.y += dy / viewPort.current.scale;
+    lastPointer.current = { x: e.clientX, y: e.clientY };
+    scheduleRedraw();
+    if (onViewportChange) onViewportChange({ ...viewPort.current });
+  }
+
+  function handlePointerUp(e) {
+    dragging.current = false;
+    e.target.releasePointerCapture?.(e.pointerId);
+  }
+
+  function handleWheel(e) {
+    // Zoom only when holding CTRL (as you already designed it)
     if (e.ctrlKey) {
       e.preventDefault();
-      if (e.target.id == 'canvas') {
-        updateVTZooming(e, viewPort,canvasRef.current);
-        render(ctx.current);
-        setVTData({...viewPort.current});
-      }
-    }
 
+      const canvas = canvasRef.current;
+      const rect = canvas.getBoundingClientRect();
+
+      // Cursor position in CSS pixels
+      const localX = e.clientX - rect.left;
+      const localY = e.clientY - rect.top;
+
+      // Position in world coords before zoom
+      const untransformedX = localX / viewPort.current.scale - viewPort.current.x;
+      const untransformedY = localY / viewPort.current.scale - viewPort.current.y;
+
+      // Zoom factor
+      const zoomFactor = Math.exp(-e.deltaY * 0.0015);
+      let newScale = viewPort.current.scale * zoomFactor;
+
+      // Clamp zoom
+      newScale = Math.max(0.2, Math.min(5, newScale));
+
+      // Update scale
+      viewPort.current.scale = newScale;
+
+      // Keep the cursor's world point fixed
+      viewPort.current.x = localX / newScale - untransformedX;
+      viewPort.current.y = localY / newScale - untransformedY;
+
+      scheduleRedraw();
+      if (onViewportChange) onViewportChange({ ...viewPort.current });
+    }
   }
 
+  // Efectos ------------------------------------------------------------------
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    ctxRef.current = canvas.getContext("2d");
+    ctxRef.current.setTransform(1, 0, 0, 1, 0, 0);
+
+    // pointer events
+    canvas.style.touchAction = "none"; // disable all default behaviour for touch
+    canvas.addEventListener("pointerdown", handlePointerDown);
+    canvas.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    canvas.addEventListener("wheel", handleWheel, { passive: false });
+
+    // Observe size changes of the parent container
+    const ro = new ResizeObserver(() => {
+      resizeCanvasToDisplaySize();
+    });
+    ro.observe(canvas.parentElement || canvas);
+
+    // initial sizing
+    resizeCanvasToDisplaySize();
+
+    // initial draw
+    scheduleRedraw();
+
+    //Cleanup function
+    return () => {
+      canvas.removeEventListener("pointerdown", handlePointerDown);
+      canvas.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      canvas.removeEventListener("wheel", handleWheel);
+      ro.disconnect();
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+  }, [resizeCanvasToDisplaySize]); // runs once
+
+  // When timeline prop changes (new data), redraw
+  useEffect(() => {
+    scheduleRedraw();
+  }, [timeline?.id, timeline?.events?.length, timeline?.segmentos]);
+
+
   return (
-   <canvas id='canvas' ref={canvasRef} width={500} height={500} onMouseDown={handleMouseDown} onMouseUp={handleMouseUp} ></canvas>
-   
-  )
+    <canvas
+      id="canvas"
+      ref={canvasRef}
+      style={{ width: "100%", height: "100%", display: "block", touchAction: "none" }}
+    />
+  );
 }
 
-export default Canvas

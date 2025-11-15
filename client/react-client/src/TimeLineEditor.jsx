@@ -32,7 +32,7 @@ export default function TimeLine() {
                       const res = await fetch(`/api/canvas/${canvasId}`);
                       if (res.ok) {
                         const data = await res.json();
-                        setCanvasData(data);
+                        setCanvasData(new Timeline(data));
                       } else {
                         setCanvasData(null);
                         setError(`Server error ${res.status}`);
@@ -52,7 +52,7 @@ export default function TimeLine() {
                 const saved = localStorage.getItem("guestCanvas");
                 if (saved){
                     console.log("Se han recuperado datos del navegador");
-                    setCanvasData(JSON.parse(saved));
+                    setCanvasData(new Timeline(JSON.parse(saved)));
                 } 
                 else{
                     console.log("No se han encontrado daros de canvas en el navegador");
@@ -103,7 +103,11 @@ export default function TimeLine() {
             </div>
             <div className="editor-body">
                 <div className="canvas-editor">
-                    <Canvas></Canvas>
+                    {canvasData ? 
+                        (<Canvas timeline={canvasData} options={{ gridSpacing: 80, rulerHeight: 28 }} />) 
+                        : 
+                        (<div className="empty-placeholder">No timeline selected</div>)
+                    }
                 </div>
                 <div className="event-editor"></div>
             </div>
