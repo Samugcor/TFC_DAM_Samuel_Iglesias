@@ -1,6 +1,6 @@
 
 export default class Timeline {
-  constructor({ id = null, name, description = "", anioInicio, anioFin, segmentos = 1, events = [] }) {
+  constructor({ id = null, name, description = "", anioInicio, anioFin, yearSegments: yearSegments = 1, events = [] }) {
     if (!name || !anioInicio || !anioFin) {
       throw new Error("Timeline requires a name, anioInicio, and anioFin");
     }
@@ -10,7 +10,7 @@ export default class Timeline {
     this.description = description;
     this.anioInicio = anioInicio;
     this.anioFin = anioFin;
-    this.segmentos = segmentos;
+    this.yearSegments = yearSegments;
     this.events = events;
   }
 

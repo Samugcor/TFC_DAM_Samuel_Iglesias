@@ -17,8 +17,6 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
 
   const dprRef = useRef(window.devicePixelRatio || 1);// 📑 dpr (Device Pixel Ratio) is important because it can affect crispines if the user changes the aplication between screens or zooms in the browser
 
-  //🟡const [vTData, setVTData] = useState(viewPort.current);
-
  // interaction refs
   const dragging = useRef(false);
   const lastPointer = useRef({ x: 0, y: 0 });
@@ -32,8 +30,10 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
     background: options.background || "#fff",
     eventRadius: options.eventRadius || 6,
     tickColor: options.tickColor || "#666",
+    yearFont: options.labelFont || "16px sans-serif",
     labelFont: options.labelFont || "12px sans-serif",
     timelineColor: options.timelineColor || "#222",
+    labelRenderScale: options.labelRenderScale || 3, //🟡 Look for a way to meake this dinamic so it also deppends on the sixe of the canvas
     ...options,
   };
 
@@ -80,7 +80,6 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
   }
 
   // Coordinate conversion -------------------------------------------
-  //🟡 Hay que revisar todo el tema de los paddings porque no se yo
   function normalizedToCanvasX(norm) {
     const canvas = canvasRef.current;
     if (!canvas) return 0;
@@ -150,21 +149,97 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
   function drawTimelineLine(ctx) {
     const canvas = canvasRef.current;
     if (!canvas || !timeline) return;
-    const trackY = (canvas.clientHeight / 2 + viewPort.current.y) * viewPort.current.scale;
+    const trackY = Math.round((canvas.clientHeight / 2 + viewPort.current.y) * viewPort.current.scale)+0.5;//El math y el 0.5 so para que sean más limpias las lineas
 
     ctx.save();
+    //Line
     ctx.lineWidth = 3;
     ctx.strokeStyle = cfg.timelineColor;
+
     ctx.beginPath();
+
     const startX = normalizedToCanvasX(0);
     const endX = normalizedToCanvasX(1);
-    ctx.moveTo(startX, trackY);
+
+    ctx.moveTo(startX, trackY); 
     ctx.lineTo(endX, trackY);
     ctx.stroke();
+
+    //Text
+    ctx.fillStyle = cfg.timelineColor;
+    ctx.font = cfg.yearFont;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+
+    const startYear = timeline.anioInicio;  
+    const endYear = timeline.anioFin;       
+
+    const textOffset = 8;
+
+    ctx.fillText(startYear, startX, trackY + textOffset);
+    ctx.fillText(endYear, endX, trackY + textOffset);
+
+    // Ticks
+    ctx.beginPath();
+    ctx.moveTo(startX, trackY - 5);
+    ctx.lineTo(startX, trackY + 5);
+
+    ctx.moveTo(endX, trackY - 5);
+    ctx.lineTo(endX, trackY + 5);
+
+    ctx.stroke()
+
+    drawYearSegments(ctx, trackY);
+
+    //Restaurar
     ctx.restore();
 
     return trackY;
   }
+
+  //🟡  As of now the years are shown in the Time Line but there is no control over how crowded this can be, is up to the user to set a YearSegment that makes sense with the Time Line.
+  function drawYearSegments(ctx, trackY) {
+  if (!timeline || !timeline.yearSegments || timeline.yearSegments <= 0) return;
+
+  const currentScale = viewPort.current.scale;
+  const startYear = timeline.anioInicio;
+  const endYear = timeline.anioFin;
+  const segmentInterval = timeline.yearSegments;
+
+  ctx.save();
+  ctx.strokeStyle = cfg.tickColor;
+  ctx.fillStyle = cfg.tickColor;
+  ctx.font = cfg.labelFont;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  ctx.lineWidth = 1;
+
+  const textOffset = 8;
+  const tickLength = 5;
+
+  let currentYear = startYear + segmentInterval;
+
+  ctx.beginPath();
+  while (currentYear < endYear) {
+    const norm = timeline.normalizedPositionForYear(currentYear);
+    const x = normalizedToCanvasX(norm);
+    
+    const sharpX = Math.round(x) + 0.5;
+
+    
+    ctx.moveTo(sharpX, trackY - tickLength);
+    ctx.lineTo(sharpX, trackY + tickLength);
+    
+   
+    if (currentScale >= cfg.labelRenderScale) {
+      ctx.fillText(currentYear, sharpX, trackY + textOffset + tickLength);
+    }
+
+    currentYear += segmentInterval;
+  }
+  ctx.stroke();
+  ctx.restore();
+}
 
   function drawEvents(ctx, trackY) {
     if (!timeline) return;
@@ -174,13 +249,13 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
       const norm = timeline.normalizedPositionForYear(ev.year);
       const x = normalizedToCanvasX(norm);
       const y = trackY;
-    
+
       // marker
       ctx.beginPath();
       ctx.fillStyle = ev.color || "#1976d2";
       ctx.arc(x, y, cfg.eventRadius, 0, Math.PI * 2);
       ctx.fill();
-    
+
       // label
       ctx.font = cfg.labelFont;
       ctx.textAlign = "center";
@@ -195,7 +270,7 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
   function draw() {
     const ctx = ctxRef.current;
     if (!ctx) return;
-    // clear full buffer (note ctx.setTransform has been set to DPR earlier)
+    
     clear(ctx);
 
     // background

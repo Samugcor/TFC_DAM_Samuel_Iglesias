@@ -8,7 +8,7 @@ export default function NewTimeLineModal({ onCreate, onClose }) {
     description: "",
     anioInicio: "",
     anioFin: "",
-    segmentos: 1,
+    yearSegments: 1,
   });
 
   const handleCreate = () => {
@@ -70,13 +70,13 @@ export default function NewTimeLineModal({ onCreate, onClose }) {
       </label>
 
       <label>
-        Segments:
+        Segmentos de año:
         <input
           type="number"
           min="1"
-          value={timeline.segmentos}
+          value={timeline.yearSegments}
           onChange={(e) =>
-            setTimeline({ ...timeline, segmentos: Number(e.target.value) })
+            setTimeline({ ...timeline, yearSegments: Number(e.target.value) })
           }
         />
       </label>
