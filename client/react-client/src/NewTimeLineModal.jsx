@@ -1,4 +1,3 @@
-// ./NewTimeLineModal.jsx
 import Modal from "./Modal";
 import { useState } from "react";
 

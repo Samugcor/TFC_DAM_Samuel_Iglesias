@@ -1,6 +1,6 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import './styles/Canvas.css';
-
+import Toolbar, { TOOLS } from './ToolBarCanvas';
 /* Canvas:
  * - timeline: Timeline object
  * - options: { background, eventRadius, ... } (optional)
@@ -8,22 +8,25 @@ import './styles/Canvas.css';
  */
 
 export default function Canvas({ timeline, options = {}, onViewportChange }) {
+  //States -----------------------------------------------------------
+   const [activeTool, setActiveTool] = useState(TOOLS.PAN);
 
   //References--------------------------------------------------------
-
   const canvasRef = useRef(null);
   let ctxRef = useRef(null);// context
   const viewPort = useRef({ x: 0, y:0 , scale: 1 });
 
   const dprRef = useRef(window.devicePixelRatio || 1);// 📑 dpr (Device Pixel Ratio) is important because it can affect crispines if the user changes the aplication between screens or zooms in the browser
 
- // interaction refs
+  // interaction refs
   const dragging = useRef(false);
   const lastPointer = useRef({ x: 0, y: 0 });
+  const activeToolRef = useRef(activeTool);
 
   // requestFrameAnimation scheduling
   const rafRef = useRef(null);
   const needsRedraw = useRef(true);
+
 
   //Canvas configuration settings ------------------------------------
   const cfg = {
@@ -58,7 +61,6 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
       canvas.width = displayWidth;
       canvas.height = displayHeight;
       
-      // set transform so drawing coordinates are in css pixels * dpr
       ctxRef.current = canvas.getContext("2d");
       ctxRef.current.setTransform(dpr, 0, 0, dpr, 0, 0);
       scheduleRedraw();
@@ -85,7 +87,7 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
     if (!canvas) return 0;
 
     const cssW = canvas.clientWidth;
-    const basePad = 40; // desired padding at scale 1
+    const basePad = 40; // 🟡Cambiar por variable de configuración
     const pad = basePad / viewPort.current.scale; // adaptive padding
 
     const trackW = Math.max(basePad, cssW - basePad * 2 / viewPort.current.scale);
@@ -289,31 +291,58 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
   // Draw actions ------------------------------------------------
   // Interaction handlers ----------------------------------------
   function handlePointerDown(e) {
-    dragging.current = true;
-    lastPointer.current = { x: e.clientX, y: e.clientY };
-    e.target.setPointerCapture?.(e.pointerId);
+    const tool = activeToolRef.current;
+
+    if (tool === TOOLS.PAN) {
+      dragging.current = true;
+      lastPointer.current = { x: e.clientX, y: e.clientY };
+      e.target.setPointerCapture?.(e.pointerId);
+    }
+    else {
+      // 🟢 TOOL ACTION START: Handle the start of a drawing action
+      console.log(`Tool ${tool} started at: ${e.clientX}, ${e.clientY}`);
+    }
   }
 
   function handlePointerMove(e) {
-    if (!dragging.current) return;
-    const dx = e.clientX - lastPointer.current.x;
-    const dy = e.clientY - lastPointer.current.y;
-    // update viewport: pan uses pixels, but respect scale
-    viewPort.current.x += dx / viewPort.current.scale;
-    viewPort.current.y += dy / viewPort.current.scale;
-    lastPointer.current = { x: e.clientX, y: e.clientY };
-    scheduleRedraw();
-    if (onViewportChange) onViewportChange({ ...viewPort.current });
+    const tool = activeToolRef.current;
+
+    if (tool === TOOLS.PAN && dragging.current) {
+      const dx = e.clientX - lastPointer.current.x;
+      const dy = e.clientY - lastPointer.current.y;
+      
+      viewPort.current.x += dx / viewPort.current.scale;
+      viewPort.current.y += dy / viewPort.current.scale;
+      lastPointer.current = { x: e.clientX, y: e.clientY };
+      scheduleRedraw();
+      if (onViewportChange) onViewportChange({ ...viewPort.current });
+    } else if (tool !== TOOLS.PAN && dragging.current) {
+      // 🟢 TOOL ACTION MOVE: Update preview of the shape being drawn
+      // scheduleRedraw(); 
+    }
   }
 
   function handlePointerUp(e) {
-    dragging.current = false;
-    e.target.releasePointerCapture?.(e.pointerId);
+    const tool = activeToolRef.current;
+
+    if (tool === TOOLS.PAN) {
+      dragging.current = false;
+      e.target.releasePointerCapture?.(e.pointerId);
+    } else if (tool !== TOOLS.PAN && dragging.current) {
+      // 🟢 TOOL ACTION END: Finalize the shape and add it to a list of drawn objects
+      // dragging.current = false;
+      // e.target.releasePointerCapture?.(e.pointerId);
+      console.log(`Tool ${tool} finished at: ${e.clientX}, ${e.clientY}`);
+      // dd the new shape/text object to state
+      // call scheduleRedraw();
+    }
   }
 
   function handleWheel(e) {
-    // Zoom only when holding CTRL (as you already designed it)
-    if (e.ctrlKey) {
+    const tool = activeToolRef.current;
+
+    
+    if (e.ctrlKey && tool === TOOLS.PAN) {
       e.preventDefault();
 
       const canvas = canvasRef.current;
@@ -384,20 +413,28 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
         rafRef.current = null;
       }
     };
-  }, [resizeCanvasToDisplaySize]); // runs once
+  }, [resizeCanvasToDisplaySize]);
 
   // When timeline prop changes (new data), redraw
   useEffect(() => {
     scheduleRedraw();
   }, [timeline?.id, timeline?.events?.length, timeline?.segmentos]);
 
+  useEffect(() => {
+    activeToolRef.current = activeTool;
+  }, [activeTool]);
 
+  console.log("Active tool:", activeTool);
   return (
+    <>
+    <Toolbar activeTool={activeTool} setActiveTool={setActiveTool}/>
     <canvas
       id="canvas"
       ref={canvasRef}
       style={{ width: "100%", height: "100%", display: "block", touchAction: "none" }}
     />
+    </>
+    
   );
 }
 

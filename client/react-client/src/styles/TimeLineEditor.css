@@ -11,6 +11,7 @@
     border: 1px dashed rgb(227, 65, 65);
     min-width: 0;    /* IMPORTANT for flex children */
     min-height: 0;   /* avoids infinite expansion */
+    position: relative;
 }
 .event-editor{
     border: 1px dashed rgb(36, 218, 36);
