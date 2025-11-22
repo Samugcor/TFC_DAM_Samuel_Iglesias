@@ -1,6 +1,6 @@
 
 export default class Timeline {
-  constructor({ id = null, name, description = "", anioInicio, anioFin, yearSegments: yearSegments = 1, events = [] }) {
+  constructor({ id = null, name, description = "", anioInicio, anioFin, yearSegments: yearSegments = 1, events = [], elements = [] }) {
     if (!name || !anioInicio || !anioFin) {
       throw new Error("Timeline requires a name, anioInicio, and anioFin");
     }
@@ -12,6 +12,7 @@ export default class Timeline {
     this.anioFin = anioFin;
     this.yearSegments = yearSegments;
     this.events = events;
+    this.elements = elements;
   }
 
   static generateId() {
@@ -27,6 +28,10 @@ export default class Timeline {
     const dur = this.getDuration() || 1;
     return (year - this.anioInicio) / dur;
   }
+  yearForNormalizedPosition(norm) {
+  const dur = this.getDuration() || 1;
+  return this.anioInicio + norm * dur;
+}
 
   // convenience: events sorted by year
   getSortedEvents() {
@@ -36,5 +41,25 @@ export default class Timeline {
   // optional: get events inside range (inclusive)
   getEventsInRange(startYear, endYear) {
     return this.getSortedEvents().filter(e => e.year >= startYear && e.year <= endYear);
+  }
+
+  //Events
+  addEvent(evento) {
+    this.events.push(evento);
+  }
+  printEvents(){
+    console.log("EVENTOS:");
+  for (const ev of this.events) {
+    console.log("\t", ev);
+  }
+  }
+
+  //Elements
+  addElement(el) {
+    this.elements.push(el);
+  }
+
+  removeLastElement() {
+    return this.elements.pop();
   }
 }

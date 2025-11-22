@@ -1,20 +1,25 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import './styles/Canvas.css';
 import Toolbar, { TOOLS } from './ToolBarCanvas';
+import Evento from "./classes/Evento";
+
 /* Canvas:
  * - timeline: Timeline object
  * - options: { background, eventRadius, ... } (optional)
  * - onViewportChange: optional callback to communicate viewport to parent (optional)
  */
 
-export default function Canvas({ timeline, options = {}, onViewportChange }) {
+const WORLD_TRACK_WIDTH = 1000;
+const WORLD_TRACK_Y = 500; // Fixed world Y coordinate for the timeline center
+
+export default function Canvas({ timeline, setSelectedEvent, options = {}, onViewportChange }) {
   //States -----------------------------------------------------------
    const [activeTool, setActiveTool] = useState(TOOLS.PAN);
 
   //References--------------------------------------------------------
   const canvasRef = useRef(null);
   let ctxRef = useRef(null);// context
-  const viewPort = useRef({ x: 0, y:0 , scale: 1 });
+  const viewPort = useRef({ x: 0, y: 0 , scale: 1 }); 
 
   const dprRef = useRef(window.devicePixelRatio || 1);// 📑 dpr (Device Pixel Ratio) is important because it can affect crispines if the user changes the aplication between screens or zooms in the browser
 
@@ -57,15 +62,27 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
     const displayWidth = Math.floor(cssWidth * dpr);
     const displayHeight = Math.floor(cssHeight * dpr);
 
+    const isInitialRender = viewPort.current.x === 0 && viewPort.current.y === 0 && viewPort.current.scale === 1;
+
     if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
       canvas.width = displayWidth;
       canvas.height = displayHeight;
       
       ctxRef.current = canvas.getContext("2d");
       ctxRef.current.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      // Recalculate center
+      if (isInitialRender) {
+          const initialPanX = (cssWidth / 2) - (WORLD_TRACK_WIDTH / 2);
+          viewPort.current.x = initialPanX;
+
+          const initialPanY = (cssHeight / 2) - (WORLD_TRACK_Y / 1);
+          viewPort.current.y = initialPanY;
+      }
+
       scheduleRedraw();
     }
-  }, []);
+}, []);
 
   // rAF stuff -------------------------------------------------------
   function scheduleRedraw() {
@@ -82,61 +99,30 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
   }
 
   // Coordinate conversion -------------------------------------------
+  // 🟢 UPDATED: Relies on fixed WORLD_TRACK_WIDTH
   function normalizedToCanvasX(norm) {
-    const canvas = canvasRef.current;
-    if (!canvas) return 0;
-
-    const cssW = canvas.clientWidth;
-    const basePad = 40; // 🟡Cambiar por variable de configuración
-    const pad = basePad / viewPort.current.scale; // adaptive padding
-
-    const trackW = Math.max(basePad, cssW - basePad * 2 / viewPort.current.scale);
-    const x = pad + norm * trackW;
-
-    return (x + viewPort.current.x) * viewPort.current.scale;
+    const worldX = norm * WORLD_TRACK_WIDTH;
+    return (worldX * viewPort.current.scale) + (viewPort.current.x * viewPort.current.scale);
   }
   
   function canvasToNormalizedX(canvasX) {
-    const canvas = canvasRef.current;
-    if (!canvas) return 0;
-
-    const cssW = canvas.clientWidth;
-    const basePad = 40;
-    const pad = basePad / viewPort.current.scale; 
-    const trackW = Math.max(basePad, cssW - basePad * 2 / viewPort.current.scale);
-
-    const untransformed = canvasX / viewPort.current.scale - viewPort.current.x;
-    const norm = (untransformed - pad) / trackW;
+    const translatedX = canvasX - (viewPort.current.x * viewPort.current.scale);
+    const unscaledX = translatedX / viewPort.current.scale;
+    const norm = unscaledX / WORLD_TRACK_WIDTH;
     return norm;
   }
 
   function normalizedToCanvasY(normY) {
-    const canvas = canvasRef.current;
-    if (!canvas) return 0;
+    const worldY = normY * WORLD_TRACK_HEIGHT; 
+    return (worldY * viewPort.current.scale) + (viewPort.current.y * viewPort.current.scale);
+}
 
-    const cssH = canvas.clientHeight;
-    const basePad = 20; 
-    const pad = basePad / viewPort.current.scale; 
-
-    const trackH = Math.max(basePad, cssH - basePad * 2 / viewPort.current.scale);
-    const y = pad + normY * trackH;
-
-    return (y + viewPort.current.y) * viewPort.current.scale;
-  }
-
-  function canvasToNormalizedY(canvasY) {
-    const canvas = canvasRef.current;
-    if (!canvas) return 0;
-
-    const cssH = canvas.clientHeight;
-    const basePad = 20;
-    const pad = basePad / viewPort.current.scale; 
-    const trackH = Math.max(basePad, cssH - basePad * 2 / viewPort.current.scale);
-
-    const untransformed = canvasY / viewPort.current.scale - viewPort.current.y;
-    const normY = (untransformed - pad) / trackH;
+function canvasToNormalizedY(canvasY) {
+    const translatedY = canvasY - (viewPort.current.y * viewPort.current.scale);
+    const unscaledY = translatedY / viewPort.current.scale;
+    const normY = unscaledY / WORLD_TRACK_HEIGHT;
     return normY;
-  }
+}
 
   // Drawing base -----------------------------------------------------
   function clear(ctx) {
@@ -151,7 +137,9 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
   function drawTimelineLine(ctx) {
     const canvas = canvasRef.current;
     if (!canvas || !timeline) return;
-    const trackY = Math.round((canvas.clientHeight / 2 + viewPort.current.y) * viewPort.current.scale)+0.5;//El math y el 0.5 so para que sean más limpias las lineas
+
+    const trackY = (WORLD_TRACK_Y * viewPort.current.scale) + (viewPort.current.y * viewPort.current.scale);
+    const sharpTrackY = Math.round(trackY) + 0.5;
 
     ctx.save();
     //Line
@@ -163,8 +151,8 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
     const startX = normalizedToCanvasX(0);
     const endX = normalizedToCanvasX(1);
 
-    ctx.moveTo(startX, trackY); 
-    ctx.lineTo(endX, trackY);
+    ctx.moveTo(startX, sharpTrackY); 
+    ctx.lineTo(endX, sharpTrackY);
     ctx.stroke();
 
     //Text
@@ -178,25 +166,25 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
 
     const textOffset = 8;
 
-    ctx.fillText(startYear, startX, trackY + textOffset);
-    ctx.fillText(endYear, endX, trackY + textOffset);
+    ctx.fillText(startYear, startX, sharpTrackY + textOffset);
+    ctx.fillText(endYear, endX, sharpTrackY + textOffset);
 
     // Ticks
     ctx.beginPath();
-    ctx.moveTo(startX, trackY - 5);
-    ctx.lineTo(startX, trackY + 5);
+    ctx.moveTo(startX, sharpTrackY - 5);
+    ctx.lineTo(startX, sharpTrackY + 5);
 
-    ctx.moveTo(endX, trackY - 5);
-    ctx.lineTo(endX, trackY + 5);
+    ctx.moveTo(endX, sharpTrackY - 5);
+    ctx.lineTo(endX, sharpTrackY + 5);
 
     ctx.stroke()
 
-    drawYearSegments(ctx, trackY);
+    drawYearSegments(ctx, sharpTrackY);
 
     //Restaurar
     ctx.restore();
 
-    return trackY;
+    return sharpTrackY;
   }
 
   //🟡  As of now the years are shown in the Time Line but there is no control over how crowded this can be, is up to the user to set a YearSegment that makes sense with the Time Line.
@@ -216,7 +204,7 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
   ctx.textBaseline = "top";
   ctx.lineWidth = 1;
 
-  const textOffset = 8;
+  const textOffset = 18;
   const tickLength = 5;
 
   let currentYear = startYear + segmentInterval;
@@ -234,7 +222,8 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
     
    
     if (currentScale >= cfg.labelRenderScale) {
-      ctx.fillText(currentYear, sharpX, trackY + textOffset + tickLength);
+      const textY = trackY - textOffset - tickLength;
+      ctx.fillText(currentYear, sharpX, textY);
     }
 
     currentYear += segmentInterval;
@@ -284,8 +273,15 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
     ctx.fillRect(0, 0, cssW, cssH);
     ctx.restore();
 
+    // Apply the CSS to device pixel ratio transform 
+    const dpr = dprRef.current;
+    ctx.save();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); 
+    
     const trackY = drawTimelineLine(ctx) || 60;
     drawEvents(ctx, trackY);
+    
+    ctx.restore();
   }
 
   // Draw actions ------------------------------------------------
@@ -302,6 +298,19 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
       // 🟢 TOOL ACTION START: Handle the start of a drawing action
       console.log(`Tool ${tool} started at: ${e.clientX}, ${e.clientY}`);
     }
+
+    if (tool === TOOLS.NEWEVENT) {
+      // Convert canvas coordinate → year
+      const rect = canvasRef.current.getBoundingClientRect();
+      const canvasX = e.clientX - rect.left;
+
+      const normX = canvasToNormalizedX(canvasX);
+      const year = timeline.yearForNormalizedPosition(normX);  
+
+      createEvent(year);
+      setActiveTool(TOOLS.PAN);
+      return;
+    }
   }
 
   function handlePointerMove(e) {
@@ -313,12 +322,12 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
       
       viewPort.current.x += dx / viewPort.current.scale;
       viewPort.current.y += dy / viewPort.current.scale;
+
       lastPointer.current = { x: e.clientX, y: e.clientY };
       scheduleRedraw();
       if (onViewportChange) onViewportChange({ ...viewPort.current });
     } else if (tool !== TOOLS.PAN && dragging.current) {
-      // 🟢 TOOL ACTION MOVE: Update preview of the shape being drawn
-      // scheduleRedraw(); 
+      // 🟢 TOOL ACTION MOVE
     }
   }
 
@@ -329,12 +338,8 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
       dragging.current = false;
       e.target.releasePointerCapture?.(e.pointerId);
     } else if (tool !== TOOLS.PAN && dragging.current) {
-      // 🟢 TOOL ACTION END: Finalize the shape and add it to a list of drawn objects
-      // dragging.current = false;
-      // e.target.releasePointerCapture?.(e.pointerId);
+      // 🟢 TOOL ACTION END
       console.log(`Tool ${tool} finished at: ${e.clientX}, ${e.clientY}`);
-      // dd the new shape/text object to state
-      // call scheduleRedraw();
     }
   }
 
@@ -352,36 +357,48 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
       const localX = e.clientX - rect.left;
       const localY = e.clientY - rect.top;
 
-      // Position in world coords before zoom
-      const untransformedX = localX / viewPort.current.scale - viewPort.current.x;
-      const untransformedY = localY / viewPort.current.scale - viewPort.current.y;
+      // Find world point before zoom
+      // WorldPoint = (ScreenPoint - (Translation * Scale)) / Scale
+      const unscaledX = (localX - viewPort.current.x * viewPort.current.scale) / viewPort.current.scale;
+      const unscaledY = (localY - viewPort.current.y * viewPort.current.scale) / viewPort.current.scale;
 
       // Zoom factor
       const zoomFactor = Math.exp(-e.deltaY * 0.0015);
       let newScale = viewPort.current.scale * zoomFactor;
 
       // Clamp zoom
-      newScale = Math.max(0.2, Math.min(5, newScale));
+      newScale = Math.max(0.3, Math.min(50, newScale));
 
       // Update scale
       viewPort.current.scale = newScale;
 
-      // Keep the cursor's world point fixed
-      viewPort.current.x = localX / newScale - untransformedX;
-      viewPort.current.y = localY / newScale - untransformedY;
+      // Keep the cursor's world point fixed by recalculating the new translation (viewPort.x/y)
+      // New Translation = (ScreenPoint - (WorldPoint * NewScale)) / NewScale
+      viewPort.current.x = (localX - unscaledX * newScale) / newScale;
+      viewPort.current.y = (localY - unscaledY * newScale) / newScale;
+
 
       scheduleRedraw();
       if (onViewportChange) onViewportChange({ ...viewPort.current });
     }
   }
 
+  //Eventos
+  function createEvent(year){
+    const newEvent = new Evento({
+      title: "New Event",
+      year,
+      description: ""
+    });
+    timeline.addEvent(newEvent); 
+    setSelectedEvent(newEvent);
+    scheduleRedraw();
+  }
+
   // Efectos ------------------------------------------------------------------
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    ctxRef.current = canvas.getContext("2d");
-    ctxRef.current.setTransform(1, 0, 0, 1, 0, 0);
-
     // pointer events
     canvas.style.touchAction = "none"; // disable all default behaviour for touch
     canvas.addEventListener("pointerdown", handlePointerDown);
@@ -425,9 +442,10 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
   }, [activeTool]);
 
   console.log("Active tool:", activeTool);
+  
   return (
     <>
-    <Toolbar activeTool={activeTool} setActiveTool={setActiveTool}/>
+    <Toolbar activeTool={activeTool} setActiveTool={setActiveTool} createEvent={createEvent}/>
     <canvas
       id="canvas"
       ref={canvasRef}
@@ -437,4 +455,3 @@ export default function Canvas({ timeline, options = {}, onViewportChange }) {
     
   );
 }
-

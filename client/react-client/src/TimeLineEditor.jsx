@@ -8,12 +8,14 @@ import NewTimeLineModal from "./NewTimeLineModal";
 import ErrorModal from "./ErrorModal";
 
 import Timeline from "./classes/TimeLine";
+import EventEditor from "./EventEditor";
 
 export default function TimeLine() {
     const { session } = useSession(); // is a guest or a logged in user?
     const { canvasId } = useParams(); // from /timeline/:canvasId
 
-    const [canvasData, setCanvasData] = useState(null); //datos del canva
+    const [timeLine, setTimeLine] = useState(null); 
+    const [selectedEvent, setSelectedEvent] = useState(null);
     const [loading, setLoading] = useState(true);
 
     const [error, setError] = useState("");
@@ -32,19 +34,19 @@ export default function TimeLine() {
                       const res = await fetch(`/api/canvas/${canvasId}`);
                       if (res.ok) {
                         const data = await res.json();
-                        setCanvasData(new Timeline(data));
+                        setTimeLine(new Timeline(data));
                       } else {
-                        setCanvasData(null);
+                        setTimeLine(null);
                         setError(`Server error ${res.status}`);
                       }
                     } catch {
-                      setCanvasData(null);
+                      setTimeLine(null);
                       setError("No se ha podido conectar con el servidor");
                     }
                 } else {
                     console.log("No hay datos de canvas");
                     // new canvas
-                    setCanvasData(null);
+                    setTimeLine(null);
                 }
             }
             else if (session.type === "guest") {
@@ -52,11 +54,11 @@ export default function TimeLine() {
                 const saved = localStorage.getItem("guestCanvas");
                 if (saved){
                     console.log("Se han recuperado datos del navegador");
-                    setCanvasData(new Timeline(JSON.parse(saved)));
+                    setTimeLine(new Timeline(JSON.parse(saved)));
                 } 
                 else{
                     console.log("No se han encontrado daros de canvas en el navegador");
-                    setCanvasData(null);
+                    setTimeLine(null);
                 }
             }
             setLoading(false);
@@ -67,8 +69,8 @@ export default function TimeLine() {
 
     useEffect(() => {
         //Antes de mostrar un modal comprobamos que no estamos cargando datos, que hay datos y que no ha habido un error
-        if (!loading && canvasData === null && !error) setShowCreateModal(true);
-    }, [canvasData, error, loading]);
+        if (!loading && timeLine === null && !error) setShowCreateModal(true);
+    }, [timeLine, error, loading]);
 
     const handleCreateTimeline = (timelineData) => {
         try {
@@ -78,14 +80,14 @@ export default function TimeLine() {
                 localStorage.setItem("guestCanvas", JSON.stringify(newTimeline)); 
             }
 
-            setCanvasData(newTimeline); 
+            setTimeLine(newTimeline); 
             setShowCreateModal(false); 
         } catch (err) {
             setError(err.message); 
         }
     };
 
-
+    
     return(
         <div className="time-line-editor">
             <div className="head">
@@ -93,23 +95,37 @@ export default function TimeLine() {
                 {session.type === "guest" && (
                     <button onClick={() => setShowCreateModal(true)}>new timeline</button>
                 )}
-                {canvasData && (
+                {timeLine && (
                   <div className="timeline-info">
-                    <p><strong>Timeline:</strong> {canvasData.name}</p>
-                    <p>{canvasData.description}</p>
-                    <p><em>{canvasData.anioInicio} - {canvasData.anioFin}</em></p>
+                    <p><strong>Timeline:</strong> {timeLine.name}</p>
+                    <p>{timeLine.description}</p>
+                    <p><em>{timeLine.anioInicio} - {timeLine.anioFin}</em></p>
                   </div>
                 )}
             </div>
             <div className="editor-body">
                 <div className="canvas-editor">
-                    {canvasData ? 
-                        (<Canvas timeline={canvasData} options={{ gridSpacing: 80, rulerHeight: 28 }} />) 
+                    {timeLine ? 
+                        (<Canvas timeline={timeLine} setSelectedEvent={setSelectedEvent} />) 
                         : 
                         (<div className="empty-placeholder">No timeline selected</div>)
                     }
                 </div>
-                <div className="event-editor"></div>
+                <div className="event-editor" style={{flex: selectedEvent ? " 0 1 40%" : " 0 1 0"}}>
+                    {selectedEvent && (
+                        <EventEditor
+                          event={selectedEvent}
+                          onChange={(updated) => {
+                            // Update the event inside the timeline object
+                            timeLine.updateEvent(updated); 
+                            setTimeLine(new Timeline(timeLine)); // trigger rerender
+                            setSelectedEvent(updated);           
+                          }}
+                          onClose={() => setSelectedEvent(null)}
+                        />
+                    )}
+                </div>
+                
             </div>
 
             {showCreateModal && (

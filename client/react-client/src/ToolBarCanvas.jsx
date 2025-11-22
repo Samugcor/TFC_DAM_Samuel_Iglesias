@@ -6,6 +6,7 @@ export const TOOLS = {
   TEXT: 'TEXT',
   CIRCLE: 'CIRCLE',
   RECTANGLE: 'RECTANGLE',
+  NEWEVENT: 'NEWEVENT'
 };
 
 export default function Toolbar({ activeTool, setActiveTool }) {
@@ -27,9 +28,14 @@ export default function Toolbar({ activeTool, setActiveTool }) {
         ⭕ Circle
       </button>
       <button 
-        onClick={() => console.log("hi")}
+        onClick={() => setActiveTool(TOOLS.RECTANGLE)}
       >
         🔲 Rectangle
+      </button>
+      <button 
+        onClick={() => setActiveTool(TOOLS.NEWEVENT)}
+      >
+        ➕ Create Event
       </button>
     </div>
   );
