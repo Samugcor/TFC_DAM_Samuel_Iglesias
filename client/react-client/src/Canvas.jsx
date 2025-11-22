@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import './styles/Canvas.css';
 import Toolbar, { TOOLS } from './ToolBarCanvas';
-import Evento from "./classes/Evento";
+
 
 /* Canvas:
  * - timeline: Timeline object
@@ -12,7 +12,7 @@ import Evento from "./classes/Evento";
 const WORLD_TRACK_WIDTH = 1000;
 const WORLD_TRACK_Y = 500; // Fixed world Y coordinate for the timeline center
 
-export default function Canvas({ timeline, setSelectedEvent, options = {}, onViewportChange }) {
+export default function Canvas({ timeline, addEvent, options = {}, onViewportChange }) {
   //States -----------------------------------------------------------
    const [activeTool, setActiveTool] = useState(TOOLS.PAN);
 
@@ -307,7 +307,7 @@ function canvasToNormalizedY(canvasY) {
       const normX = canvasToNormalizedX(canvasX);
       const year = timeline.yearForNormalizedPosition(normX);  
 
-      createEvent(year);
+      addEvent(year);
       setActiveTool(TOOLS.PAN);
       return;
     }
@@ -383,17 +383,7 @@ function canvasToNormalizedY(canvasY) {
     }
   }
 
-  //Eventos
-  function createEvent(year){
-    const newEvent = new Evento({
-      title: "New Event",
-      year,
-      description: ""
-    });
-    timeline.addEvent(newEvent); 
-    setSelectedEvent(newEvent);
-    scheduleRedraw();
-  }
+ 
 
   // Efectos ------------------------------------------------------------------
   useEffect(() => {
@@ -445,7 +435,7 @@ function canvasToNormalizedY(canvasY) {
   
   return (
     <>
-    <Toolbar activeTool={activeTool} setActiveTool={setActiveTool} createEvent={createEvent}/>
+    <Toolbar activeTool={activeTool} setActiveTool={setActiveTool}/>
     <canvas
       id="canvas"
       ref={canvasRef}

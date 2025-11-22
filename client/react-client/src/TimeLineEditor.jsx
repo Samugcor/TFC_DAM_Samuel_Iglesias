@@ -8,6 +8,7 @@ import NewTimeLineModal from "./NewTimeLineModal";
 import ErrorModal from "./ErrorModal";
 
 import Timeline from "./classes/TimeLine";
+import Evento from "./classes/Evento";
 import EventEditor from "./EventEditor";
 
 export default function TimeLine() {
@@ -20,6 +21,25 @@ export default function TimeLine() {
 
     const [error, setError] = useState("");
     const [showCreateModal, setShowCreateModal] = useState(false);
+
+    //Modificaciones linea temporal
+    const addEvent = (year) => {
+      const newEvent = new Evento({ title: "New Event", year, description: "" });
+      timeLine.addEvent(newEvent);
+      setTimeLine(new Timeline(timeLine)); // trigger rerender
+      setSelectedEvent(newEvent);
+        
+      // persist
+      if (session.type === "guest") {
+        localStorage.setItem("guestCanvas", JSON.stringify(timeLine));
+      } else if (session.type === "user" && timeLine.id) {
+        //fetch(`/api/canvas/${timeLine.id}`, {
+        //  method: "PUT",
+        //  headers: { "Content-Type": "application/json" },
+        //  body: JSON.stringify(timeLine),
+        //});
+      }
+    };
 
     //Datos de la linea temporal
     useEffect(() => {
@@ -106,7 +126,7 @@ export default function TimeLine() {
             <div className="editor-body">
                 <div className="canvas-editor">
                     {timeLine ? 
-                        (<Canvas timeline={timeLine} setSelectedEvent={setSelectedEvent} />) 
+                        (<Canvas timeline={timeLine} setSelectedEvent={setSelectedEvent} addEvent={addEvent}/>) 
                         : 
                         (<div className="empty-placeholder">No timeline selected</div>)
                     }
