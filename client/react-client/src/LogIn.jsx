@@ -1,7 +1,8 @@
 import { useState } from "react";
 import "./styles/Login.css";
 import { useNavigate } from "react-router-dom";
-import { useSession } from "./context/sessionContext"; 
+import { useSession } from "./context/sessionContext";
+
 
 export default function LogIn() {
   const [username, setUsername] = useState("");
@@ -12,7 +13,6 @@ export default function LogIn() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-
     try {
       const response = await fetch("http://localhost:8080/auth/login", {
         method: "POST",
@@ -31,47 +31,76 @@ export default function LogIn() {
       } else {
         setError("Invalid username or password");
       }
-
     } catch (error) {
-      setError("Server error");
+      setError("There has been a server error");
     }
-
-    
   }
 
-  function handleGuest(e){
+  function handleGuest() {
     setSession({
       type: "guest",
       userData: null,
     });
-    navigate("/timeline")
+    navigate("/timeline");
   }
 
-  return(
-      <div className="login-card">
-          <h2 className="login-title">
-            We are <span className="login-bold">Login</span>
-          </h2>
+  return (
+    <div className="login-container">
 
-          <div className="login-logo">
-            <div className="logo-box">
-              <span className="logo-text">L</span>
-            </div>
-          </div>
+      <div className="login-box">
+        <div className="login-left">
+
+          <h1 className="brand-title">Lime Line</h1>
 
           <form className="login-form" onSubmit={handleSubmit}>
-            <input className="login-input" type="text" placeholder="User" value={username} onChange={(e) => setUsername(e.target.value)}/>
-            <input className="login-input" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)}/>
-            <button className="login-button button" type="submit">
-              LOG IN
-            </button>
+            <label>Email</label>
+            <input
+              className="login-input"
+              type="email"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+
+            <label>Password</label>
+            <input
+              className="login-input"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+
+            {error ? (
+              <p className="error-text">{error}</p>
+            ) : (
+              <div className="login-buttons-row">
+                <button className="login-btn primary" type="submit">
+                  Log in
+                </button>
+                <button
+                  type="button"
+                  className="login-btn secondary"
+                  onClick={() => navigate("/register")}
+                >
+                  Create account
+                </button>
+              </div>
+            )}
+
+            <div className="guest-row">
+              or <span className="guest-link" onClick={handleGuest}>Continue as guest</span>
+            </div>
+
+            
           </form>
-          {error && <p style={{ color: "red" }}>{error}</p>}
-          <button className="guest-button button" onClick={handleGuest}>
-              CONTINUAR COMO INVITADO
-          </button>
+        </div>
+
+        <div className="login-right">
+          <div className="icon"></div>
+          <div className="icon"></div>
           
+        </div>
+
       </div>
-      //{error && <p style={{ color: "red" }}>{error}</p>} si error true muestra <p style={{ color: "red" }}>{error}</p>
+    </div>
   );
 }
