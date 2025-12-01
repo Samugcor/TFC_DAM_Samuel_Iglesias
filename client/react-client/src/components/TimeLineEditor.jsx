@@ -107,9 +107,6 @@ export default function TimeLine() {
         //Antes de mostrar un modal comprobamos que no estamos cargando datos, que hay datos y que no ha habido un error
         if (!loading && timeLine === null && !error) setShowCreateModal(true);
     }, [timeLine, error, loading]);
-
-    
-    console.log("selected event: ",selectedEvent);
     
     
     return(

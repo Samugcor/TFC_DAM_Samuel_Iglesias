@@ -15,7 +15,7 @@ import Evento from "../classes/Evento";
  */
 
 const WORLD_TRACK_WIDTH = 1000;
-const WORLD_TRACK_Y = 500; // Fixed world Y coordinate for the timeline center
+const LINE_WORLD_Y = 500; // Fixed world Y coordinate for the timeline center
 
 export default function Canvas({ timeline, setSelectedEvent, addEvent, options = {}, onViewportChange }) {
   //States -----------------------------------------------------------
@@ -81,7 +81,7 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
           const initialPanX = (cssWidth / 2) - (WORLD_TRACK_WIDTH / 2);
           viewPort.current.x = initialPanX;
 
-          const initialPanY = (cssHeight / 2) - (WORLD_TRACK_Y / 1);
+          const initialPanY = (cssHeight / 2) - (LINE_WORLD_Y / 1);
           viewPort.current.y = initialPanY;
       }
 
@@ -147,8 +147,8 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
     const canvas = canvasRef.current;
     if (!canvas || !timeline) return;
 
-    const trackY = (WORLD_TRACK_Y * viewPort.current.scale) + (viewPort.current.y * viewPort.current.scale);
-    const sharpTrackY = Math.round(trackY) + 0.5;
+    let tLineY = (LINE_WORLD_Y * viewPort.current.scale) + (viewPort.current.y * viewPort.current.scale);
+    tLineY = Math.round(tLineY) + 0.5;
 
     ctx.save();
     //Line
@@ -160,8 +160,8 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
     const startX = normalizedToCanvasX(0);
     const endX = normalizedToCanvasX(1);
 
-    ctx.moveTo(startX, sharpTrackY); 
-    ctx.lineTo(endX, sharpTrackY);
+    ctx.moveTo(startX, tLineY); 
+    ctx.lineTo(endX, tLineY);
     ctx.stroke();
 
     //Text
@@ -175,29 +175,29 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
 
     const textOffset = 8;
 
-    ctx.fillText(startYear, startX, sharpTrackY + textOffset);
-    ctx.fillText(endYear, endX, sharpTrackY + textOffset);
+    ctx.fillText(startYear, startX, tLineY + textOffset);
+    ctx.fillText(endYear, endX, tLineY + textOffset);
 
     // Ticks
     ctx.beginPath();
-    ctx.moveTo(startX, sharpTrackY - 5);
-    ctx.lineTo(startX, sharpTrackY + 5);
+    ctx.moveTo(startX, tLineY - 5);
+    ctx.lineTo(startX, tLineY + 5);
 
-    ctx.moveTo(endX, sharpTrackY - 5);
-    ctx.lineTo(endX, sharpTrackY + 5);
+    ctx.moveTo(endX, tLineY - 5);
+    ctx.lineTo(endX, tLineY + 5);
 
     ctx.stroke()
 
-    drawYearSegments(ctx, sharpTrackY);
+    drawYearSegments(ctx, tLineY);
 
     //Restaurar
     ctx.restore();
 
-    return sharpTrackY;
+    return tLineY;
   }
 
   //🟡  As of now the years are shown in the Time Line but there is no control over how crowded this can be, is up to the user to set a YearSegment that makes sense with the Time Line.
-  function drawYearSegments(ctx, trackY) {
+  function drawYearSegments(ctx, tLineY) {
   if (!timeline || !timeline.yearSegments || timeline.yearSegments <= 0) return;
 
   const currentScale = viewPort.current.scale;
@@ -226,12 +226,12 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
     const sharpX = Math.round(x) + 0.5;
 
     
-    ctx.moveTo(sharpX, trackY - tickLength);
-    ctx.lineTo(sharpX, trackY + tickLength);
+    ctx.moveTo(sharpX, tLineY - tickLength);
+    ctx.lineTo(sharpX, tLineY + tickLength);
     
    
     if (currentScale >= cfg.labelRenderScale) {
-      const textY = trackY - textOffset - tickLength;
+      const textY = tLineY - textOffset - tickLength;
       ctx.fillText(currentYear, sharpX, textY);
     }
 
@@ -241,14 +241,20 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
   ctx.restore();
 }
 
-  function drawEvents(ctx, trackY) {
+  function drawEvents(ctx, tLineY) {
     if (!timeline) return;
     const events = timeline.getSortedEvents();
+    const drawnLabels = []; 
+    const y = tLineY;
+
     ctx.save();
+    ctx.font = cfg.labelFont;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+
     events.forEach(ev => {
       const norm = timeline.normalizedPositionForYear(ev.year);
       const x = normalizedToCanvasX(norm);
-      const y = trackY;
 
       // marker
       ctx.beginPath();
@@ -257,13 +263,40 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
       ctx.fill();
 
       // label
-      ctx.font = cfg.labelFont;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "top";
       const label = ev.title || ev.year;
+      const textHeight = parseInt(cfg.labelFont);
+      const labelWidth = ctx.measureText(label).width;
+      let labelY = y + cfg.eventRadius + 16;
+      const buffer = 6;
+
+      // adjust to avoid collisions
+      let safe = false;
+      while (!safe) {
+        safe = true;
+        for (const l of drawnLabels) {
+          const hBuffer = 10;
+          const lLeft = l.x - l.width / 2 - hBuffer;
+          const lRight = l.x + l.width / 2 + hBuffer;
+          const newLeft = x - labelWidth / 2 - hBuffer;
+          const newRight = x + labelWidth / 2 + hBuffer;
+          const horizontalOverlap = !(newRight < lLeft || newLeft > lRight);
+          const verticalOverlap = Math.abs(l.y - labelY) < textHeight + buffer;
+
+          if (horizontalOverlap && verticalOverlap) {
+            labelY = l.y + textHeight + buffer;
+            safe = false;
+            break;
+          }
+        }
+      }
+
+      // draw label
       ctx.fillStyle = "#111";
-      ctx.fillText(label, x, y + cfg.eventRadius + 6);
+      ctx.fillText(label, x, labelY);
+
+      drawnLabels.push({ x, y: labelY, width: labelWidth });
     });
+
     ctx.restore();
   }
 
@@ -287,8 +320,8 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
     ctx.save();
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); 
     
-    const trackY = drawTimelineLine(ctx) || 60;
-    drawEvents(ctx, trackY);
+    const tLineY = drawTimelineLine(ctx) || 60;
+    drawEvents(ctx, tLineY);
     
     ctx.restore();
   }
@@ -310,14 +343,13 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
       for (const ev of events) {
         const norm = timeline.normalizedPositionForYear(ev.year);
         const evWorldX = norm * WORLD_TRACK_WIDTH;
-        const evWorldY = WORLD_TRACK_Y;
+        const evWorldY = LINE_WORLD_Y;
 
         // Circle hit test
         const dx = worldX - evWorldX;
         const dy = worldY - evWorldY;
         if (dx * dx + dy * dy <= cfg.eventRadius * cfg.eventRadius) {
           setSelectedEvent(ev);
-          console.log(ev);
           return;
         }
       }
