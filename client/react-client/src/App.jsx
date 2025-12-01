@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
-import LogIn from './LogIn';
+import LogIn from './components/LogIn';
 import './styles/App.css';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import HomePage from './HomePage';
-import TimeLineEditor from './TimeLineEditor';
+import HomePage from './components/HomePage';
+import TimeLineEditor from './components/TimeLineEditor';
 
 function App() {
 

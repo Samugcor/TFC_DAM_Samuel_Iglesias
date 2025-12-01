@@ -1,0 +1,14 @@
+.simple-editor-wrapper {
+  width: 100%;
+  height: 200px; /* or whatever fits your panel */
+  display: flex;
+  flex-direction: column;
+}
+
+.simple-editor-content {
+  flex: 1; /* fill the remaining space */
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
