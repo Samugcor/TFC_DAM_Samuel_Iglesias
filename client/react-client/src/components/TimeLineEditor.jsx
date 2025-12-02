@@ -26,12 +26,12 @@ export default function TimeLine() {
     const addEvent = (year) => {
       const newEvent = new Evento({ title: "New Event", year, description: "" });
       timeLine.addEvent(newEvent);
-      setTimeLine(new Timeline({...timeLine})); // trigger rerender
+      setTimeLine(new Timeline(  timeLine.toJSON())); // trigger rerender
       setSelectedEvent(newEvent);
         
       // persist
       if (session.type === "guest") {
-        localStorage.setItem("guestCanvas", JSON.stringify(timeLine));
+        localStorage.setItem("guestCanvas", JSON.stringify(timeLine.toJSON()));
       } else if (session.type === "user" && timeLine.id) {
         //fetch(`/api/canvas/${timeLine.id}`, {
         //  method: "PUT",
@@ -43,29 +43,26 @@ export default function TimeLine() {
 
     const updateEvent = (updatedEvent) => {
       timeLine.updateEvent(updatedEvent); 
-      const newTL = new Timeline({...timeLine});
+      const newTL = new Timeline(  timeLine.toJSON());
       setTimeLine(newTL); // trigger rerender
       setSelectedEvent(updatedEvent);
       
       if (session.type === "guest") {
-        localStorage.setItem("guestCanvas", JSON.stringify(newTL));
+        localStorage.setItem("guestCanvas", JSON.stringify(newTL.toJSON()));
       }
     }
 
     //Handlers
     const handleCreateTimeline = (timelineData) => {
-        try {
-            const newTimeline = new Timeline(timelineData); 
-
-            if (session.type === "guest") {
-                localStorage.setItem("guestCanvas", JSON.stringify(newTimeline)); 
-            }
-
-            setTimeLine(newTimeline); 
-            setShowCreateModal(false); 
-        } catch (err) {
-            setError(err.message); 
-        }
+      const newTimeline = new Timeline(timelineData); 
+      
+      if (session.type === "guest") {
+          localStorage.setItem("guestCanvas", JSON.stringify(newTimeline.toJSON())); 
+      }
+      
+      setSelectedEvent(null);
+      setTimeLine(newTimeline); 
+      setShowCreateModal(false);
     };
 
     //UseEffects
@@ -146,7 +143,12 @@ export default function TimeLine() {
             <div className="editor-body">
                 <div className="canvas-editor">
                     {timeLine ? 
-                        (<Canvas timeline={timeLine} setSelectedEvent={setSelectedEvent} addEvent={addEvent}/>) 
+                        (<Canvas 
+                          key={timeLine?.id}
+                          timeline={timeLine} 
+                          setSelectedEvent={setSelectedEvent} 
+                          addEvent={addEvent}
+                        />) 
                         : 
                         (<div className="empty-placeholder">No timeline selected</div>)
                     }

@@ -521,7 +521,7 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
   // When timeline prop changes (new data), redraw
   useEffect(() => {
     scheduleRedraw();
-  }, [timeline?.id, timeline?.events?.length, timeline?.segmentos, JSON.stringify(timeline?.events)]);
+  }, [timeline]);
 
   useEffect(() => {
     activeToolRef.current = activeTool;
