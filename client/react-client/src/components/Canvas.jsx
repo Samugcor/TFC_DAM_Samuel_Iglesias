@@ -2,9 +2,6 @@ import { useEffect, useRef, useCallback, useState } from 'react'
 import '../styles/Canvas.css';
 import Toolbar, { TOOLS } from './ToolBarCanvas';
 
-import Timeline from "../classes/TimeLine";
-import Evento from "../classes/Evento";
-
 
 /* Canvas:
  * - timeline: Timeline object
@@ -490,7 +487,7 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
   // When timeline prop changes (new data), redraw
   useEffect(() => {
     scheduleRedraw();
-  }, [timeline?.id, timeline?.events?.length, timeline?.segmentos]);
+  }, [timeline?.id, timeline?.events?.length, timeline?.segmentos, JSON.stringify(timeline?.events)]);
 
   useEffect(() => {
     activeToolRef.current = activeTool;

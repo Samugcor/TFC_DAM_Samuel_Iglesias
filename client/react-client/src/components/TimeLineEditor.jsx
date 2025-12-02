@@ -41,6 +41,17 @@ export default function TimeLine() {
       }
     };
 
+    const updateEvent = (updatedEvent) => {
+      timeLine.updateEvent(updatedEvent); 
+      const newTL = new Timeline(timeLine);
+      setTimeLine(newTL); // trigger rerender
+      setSelectedEvent(updatedEvent);
+      
+      if (session.type === "guest") {
+        localStorage.setItem("guestCanvas", JSON.stringify(newTL));
+      }
+    }
+
     //Handlers
     const handleCreateTimeline = (timelineData) => {
         try {
@@ -136,12 +147,7 @@ export default function TimeLine() {
                     {selectedEvent && (
                         <EventEditor
                           event={selectedEvent}
-                          onChange={(updated) => {
-                            // Update the event inside the timeline object
-                            timeLine.updateEvent(updated); 
-                            setTimeLine(new Timeline(timeLine)); // trigger rerender
-                            setSelectedEvent(updated);           
-                          }}
+                          onChange={updateEvent}
                           onClose={() => setSelectedEvent(null)}
                         />
                     )}

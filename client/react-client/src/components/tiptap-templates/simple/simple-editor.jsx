@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react" // <-- Ensure React is imported
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react"
 
 // --- Tiptap Core Extensions ---
@@ -18,9 +18,9 @@ import { Selection } from "@tiptap/extensions"
 import { Button } from "@/components/tiptap-ui-primitive/button"
 import { Spacer } from "@/components/tiptap-ui-primitive/spacer"
 import {
-  Toolbar,
-  ToolbarGroup,
-  ToolbarSeparator,
+ Toolbar,
+ ToolbarGroup,
+ ToolbarSeparator,
 } from "@/components/tiptap-ui-primitive/toolbar"
 
 // --- Tiptap Node ---
@@ -131,7 +131,8 @@ const MobileToolbarContent = ({ type, onBack }) => (
   </>
 )
 
-export function SimpleEditor({ value = "", onChange }) {
+// Define the component function
+function SimpleEditorComponent({ value = "", onChange }) {
   const isMobile = useIsBreakpoint()
   const { height } = useWindowSize()
   const [mobileView, setMobileView] = useState("main")
@@ -171,9 +172,9 @@ export function SimpleEditor({ value = "", onChange }) {
         onError: (error) => console.error("Upload failed:", error),
       }),
     ],
-    content: value, // <-- use the value prop instead of default template content
+    content: value, 
     onUpdate({ editor }) {
-      onChange?.(editor.getHTML()) // <-- propagate changes
+      onChange?.(editor.getHTML())
     },
   })
 
@@ -187,6 +188,12 @@ export function SimpleEditor({ value = "", onChange }) {
       setMobileView("main")
     }
   }, [isMobile, mobileView])
+
+  useEffect(() => {
+      if (editor && value !== editor.getHTML()) {
+         editor.commands.setContent(value, false); // false prevents cursor from moving to start
+      }
+   }, [editor, value]);
 
   return (
     <div className="simple-editor-wrapper" style={{ width: "100%", height: "200px", display: "flex", flexDirection: "column" }}>
@@ -219,3 +226,5 @@ export function SimpleEditor({ value = "", onChange }) {
     </div>
   )
 }
+
+export const SimpleEditor = React.memo(SimpleEditorComponent);

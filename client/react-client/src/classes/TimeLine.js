@@ -47,6 +47,21 @@ export default class Timeline {
   addEvent(evento) {
     this.events.push(evento);
   }
+
+  updateEvent(updatedEvent) {
+    if (!updatedEvent || !updatedEvent.id) {
+      throw new Error("updateEvent requires an event with a valid id");
+    }
+
+    const index = this.events.findIndex(ev => ev.id === updatedEvent.id);
+    if (index === -1) {
+      console.warn("updateEvent: event not found", updatedEvent.id);
+      return;
+    }
+
+    this.events[index] = updatedEvent;
+  }
+
   printEvents(){
     console.log("EVENTOS:");
   for (const ev of this.events) {

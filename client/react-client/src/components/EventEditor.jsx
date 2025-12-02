@@ -1,20 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { SimpleEditor } from "./tiptap-templates/simple/simple-editor";
+import ColorInput from "./ColorInput"
 
 export default function EventEditor({ event, onChange, onClose }) {
-  
-  const handleDescriptionChange = () =>{
+  const [title, setTitle] = useState(event.title);
+  const [year, setYear] = useState(event.year);
+  const [color, setColor] = useState(event.color || "#000000");
+  const [description, setDescription] = useState(event.description);
 
-  }
-  
+  // When switching to another event, update local state
+  useEffect(() => {
+    setTitle(event.title);
+    setYear(event.year);
+    setColor(event.color);
+    setDescription(event.description);
+  }, [event]);
+
+  const handleDescriptionChange = useCallback((newDescription) => {
+    setDescription(newDescription);
+  }, []);
+
+  // SAVE button handler
   const handleSave = () => {
-    onChange({
+    const updated = {
       ...event,
       title,
       year: parseInt(year),
-      description,  // now HTML from the rich text editor
-      color
-    });
+      description,
+      color,
+    };
+    onChange(updated);
   };
 
   return (
@@ -24,30 +39,30 @@ export default function EventEditor({ event, onChange, onClose }) {
       <label>Title</label>
       <input
         type="text"
-        value={event.title}
+        value={title}
         onChange={(e) => setTitle(e.target.value)}
       />
 
       <label>Year</label>
       <input
         type="number"
-        value={event.year}
+        value={year}
         onChange={(e) => setYear(e.target.value)}
       />
 
       <label>Description</label>
-      <SimpleEditor className="tiptap-editor" value={event.description} onChange={handleDescriptionChange}></SimpleEditor>
-
-      <label>Color</label>
-      <input
-        type="color"
-        value={event.color}
-        onChange={(e) => setColor(e.target.value)}
+      <SimpleEditor
+        className="tiptap-editor"
+        value={description}
+        onChange={handleDescriptionChange}
       />
+
+      
+      <ColorInput color={color} onChange={setColor} /> 
 
       <div className="event-editor-actions">
         <button onClick={onClose}>Cancel</button>
-        <button onClick={handleSave} className="save-button">Save</button>
+        <button onClick={handleSave}>Save</button>
       </div>
     </div>
   );
