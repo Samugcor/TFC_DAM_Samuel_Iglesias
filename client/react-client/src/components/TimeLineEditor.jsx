@@ -119,7 +119,15 @@ export default function TimeLine() {
         if (!loading && timeLine === null && !error) setShowCreateModal(true);
     }, [timeLine, error, loading]);
     
-    console.log(timeLine.printEvents());
+    console.log("t is t",timeLine instanceof Timeline);
+    if (timeLine) {
+        console.log(timeLine.printEvents());
+    }
+    console.log("se is e",selectedEvent instanceof Evento);
+    if (selectedEvent) {
+        console.log(selectedEvent);
+    }
+    //console.log(timeLine.printEvents());
     return(
         <div className="time-line-editor">
             <div className="head">

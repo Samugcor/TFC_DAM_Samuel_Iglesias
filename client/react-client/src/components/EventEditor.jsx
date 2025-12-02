@@ -31,7 +31,7 @@ export default function EventEditor({ event, onChange, onClose }) {
     };
     onChange(updated);
   };
-
+  
   return (
     <div className="event-editor-panel">
       <h3>Edit Event</h3>

@@ -8,7 +8,7 @@ export default class Event {
     title, 
     description = "", 
     year, 
-    color = "#59ff00ff" 
+    color = "#00fff7" 
   }) 
   {
     if (!title || year === undefined || year === null) {
