@@ -5,7 +5,7 @@ import ColorInput from "./ColorInput"
 export default function EventEditor({ event, onChange, onClose }) {
   const [title, setTitle] = useState(event.title);
   const [year, setYear] = useState(event.year);
-  const [color, setColor] = useState(event.color || "#000000");
+  const [color, setColor] = useState(event.color);
   const [description, setDescription] = useState(event.description);
 
   // When switching to another event, update local state

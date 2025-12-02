@@ -29,6 +29,8 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
   const dragging = useRef(false);
   const lastPointer = useRef({ x: 0, y: 0 });
   const activeToolRef = useRef(activeTool);
+  const prevToolRef = useRef(null);
+  const isMidPanning = useRef(false); 
 
   // requestFrameAnimation scheduling
   const rafRef = useRef(null);
@@ -327,12 +329,29 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
   // Interaction handlers ----------------------------------------
   function handlePointerDown(e) {
     const tool = activeToolRef.current;
+    const isMiddleButton = e.button === 1;
+
     const rect = canvasRef.current.getBoundingClientRect();
+
     const canvasX = e.clientX - rect.left;
     const canvasY = e.clientY - rect.top;
 
     const worldX = canvasToWorldX(canvasX);
     const worldY = canvasToWorldY(canvasY); 
+
+    if (isMiddleButton) {
+      prevToolRef.current = activeToolRef.current;
+
+      activeToolRef.current = TOOLS.PAN;
+      setActiveTool(TOOLS.PAN);
+
+      isMidPanning.current = true;
+      dragging.current = true;
+
+      lastPointer.current = { x: e.clientX, y: e.clientY };
+      e.target.setPointerCapture?.(e.pointerId);
+      return;
+    }
 
     if (tool === TOOLS.SELECT){
       const events = timeline.getSortedEvents();
@@ -395,6 +414,21 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
 
   function handlePointerUp(e) {
     const tool = activeToolRef.current;
+    const isMiddleButton = e.button === 1;
+
+    if (isMiddleButton) {
+        dragging.current = false;
+        isMidPanning.current = false;
+        e.target.releasePointerCapture?.(e.pointerId);
+
+        // Restore previous tool
+        if (prevToolRef.current) {
+            activeToolRef.current = prevToolRef.current;
+            setActiveTool(prevToolRef.current);
+        }
+
+        return;
+    }
 
     if (tool === TOOLS.PAN) {
       dragging.current = false;
