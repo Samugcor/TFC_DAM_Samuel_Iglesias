@@ -26,7 +26,7 @@ export default function TimeLine() {
     const addEvent = (year) => {
       const newEvent = new Evento({ title: "New Event", year, description: "" });
       timeLine.addEvent(newEvent);
-      setTimeLine(new Timeline(timeLine)); // trigger rerender
+      setTimeLine(new Timeline({...timeLine})); // trigger rerender
       setSelectedEvent(newEvent);
         
       // persist
@@ -43,7 +43,7 @@ export default function TimeLine() {
 
     const updateEvent = (updatedEvent) => {
       timeLine.updateEvent(updatedEvent); 
-      const newTL = new Timeline(timeLine);
+      const newTL = new Timeline({...timeLine});
       setTimeLine(newTL); // trigger rerender
       setSelectedEvent(updatedEvent);
       
@@ -119,7 +119,7 @@ export default function TimeLine() {
         if (!loading && timeLine === null && !error) setShowCreateModal(true);
     }, [timeLine, error, loading]);
     
-    
+    console.log(timeLine.printEvents());
     return(
         <div className="time-line-editor">
             <div className="head">
