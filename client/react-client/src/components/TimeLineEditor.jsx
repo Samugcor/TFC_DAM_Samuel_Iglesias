@@ -26,32 +26,11 @@ export default function TimeLine() {
 
     //Modificaciones linea temporal
     const addEvent = (year) => {
-      const newEvent = new Evento({ title: "New Event", year, description: "" });
-      timeLine.addEvent(newEvent);
-      setTimeLine(new Timeline(  timeLine.toJSON())); // trigger rerender
-      setSelectedEvent(newEvent);
-        
-      // persist
-      if (session.type === "guest") {
-        localStorage.setItem("guestCanvas", JSON.stringify(timeLine.toJSON()));
-      } else if (session.type === "user" && timeLine.id) {
-        //fetch(`/api/canvas/${timeLine.id}`, {
-        //  method: "PUT",
-        //  headers: { "Content-Type": "application/json" },
-        //  body: JSON.stringify(timeLine),
-        //});
-      }
+      
     };
 
     const updateEvent = (updatedEvent) => {
-      timeLine.updateEvent(updatedEvent); 
-      const newTL = new Timeline(  timeLine.toJSON());
-      setTimeLine(newTL); // trigger rerender
-      setSelectedEvent(updatedEvent);
       
-      if (session.type === "guest") {
-        localStorage.setItem("guestCanvas", JSON.stringify(newTL.toJSON()));
-      }
     }
 
     //Handlers

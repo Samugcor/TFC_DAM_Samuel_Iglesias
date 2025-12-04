@@ -9,6 +9,17 @@ export default function EventEditor({ event, onChange, onClose }) {
   const [color, setColor] = useState(event.color);
   const [description, setDescription] = useState(event.description);
 
+  
+  // handler
+  const handleDescriptionChange = useCallback((newDescription) => {
+    setDescription(newDescription);
+  }, []);
+
+  
+  const handleSave = () => {
+    
+  };
+
   // When switching to another event, update local state
   useEffect(() => {
     setTitle(event.title);
@@ -16,22 +27,6 @@ export default function EventEditor({ event, onChange, onClose }) {
     setColor(event.color);
     setDescription(event.description);
   }, [event]);
-
-  const handleDescriptionChange = useCallback((newDescription) => {
-    setDescription(newDescription);
-  }, []);
-
-  // SAVE button handler
-  const handleSave = () => {
-    const updated = {
-      ...event,
-      title,
-      year: parseInt(year),
-      description,
-      color,
-    };
-    onChange(updated);
-  };
   
   return (
     <div className="event-editor-panel">
