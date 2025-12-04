@@ -17,7 +17,16 @@ export default function EventEditor({ event, onChange, onClose }) {
 
   
   const handleSave = () => {
-    
+    const updatedEvent = {
+      ...event,        
+      title,
+      year: Number(year),
+      color,
+      description,
+    };
+
+    onChange(updatedEvent);
+    onClose();
   };
 
   // When switching to another event, update local state
