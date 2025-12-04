@@ -9,3 +9,53 @@
   transition: opacity 0.2s ease;
   margin-bottom: 2%;
 }
+
+.secondary_button{
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+.secondary_button.light {
+  background-color: white;
+  color: #044577;
+  border: 1px solid #044577;
+}
+
+.secondary_button.lightest {
+  position: relative;
+  background: white;
+  color: #3abb9d;
+  border: 1px solid #3abb9d;
+  overflow: hidden;
+  transition: color 0.5s ease;
+  font-weight: 700;
+}
+
+.secondary_button.lightest::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(to left, #CCE59F, #85E2CD);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 0;
+}
+
+.secondary_button.lightest:hover::before {
+  opacity: 1;
+}
+.secondary_button.lightest span {
+  position: relative;
+  z-index: 1;
+}
+.secondary_button.lightest:hover span {
+  color:white
+}
+
+.secondary_button.dark {
+  background-color: #044577;
+  color: white;
+}

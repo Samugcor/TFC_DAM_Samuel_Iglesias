@@ -1,5 +1,6 @@
 import Modal from "./Modal";
 import { useState } from "react";
+import '../styles/NewTimeLineModal.css';
 
 export default function NewTimeLineModal({ onCreate, onClose }) {
   const [timeline, setTimeline] = useState({
@@ -26,63 +27,75 @@ export default function NewTimeLineModal({ onCreate, onClose }) {
   };
 
   return (
-    <Modal title="Create New Timeline" onClose={onClose}>
-      <label>
-        Name:
-        <input
-          type="text"
-          value={timeline.name}
-          onChange={(e) => setTimeline({ ...timeline, name: e.target.value })}
-        />
-      </label>
+    <div className="modal-backdrop">
+      <div className="modal-content">
+        <h2>Create New Timeline</h2>
+        <label>
+          Name
+          <input
+            type="text"
+            value={timeline.name}
+            onChange={(e) => setTimeline({ ...timeline, name: e.target.value })}
+          />
+        </label>
 
-      <label>
-        Description:
-        <textarea
-          value={timeline.description}
-          onChange={(e) =>
-            setTimeline({ ...timeline, description: e.target.value })
-          }
-        />
-      </label>
+        <label>
+          Description
+          <textarea
+            value={timeline.description}
+            onChange={(e) =>
+              setTimeline({ ...timeline, description: e.target.value })
+            }
+          />
+        </label>
 
-      <label>
-        Start Year:
-        <input
-          type="number"
-          value={timeline.anioInicio}
-          onChange={(e) =>
-            setTimeline({ ...timeline, anioInicio: e.target.value })
-          }
-        />
-      </label>
+        <div className="year_inputs">
+          <label>
+          Start Year
+          <input
+              type="number"
+              value={timeline.anioInicio}
+              onChange={(e) =>
+                setTimeline({ ...timeline, anioInicio: e.target.value })
+              }
+            />
+          </label>
+              _
+          <label>
+            End Year
+            <input
+              type="number"
+              value={timeline.anioFin}
+              onChange={(e) =>
+                setTimeline({ ...timeline, anioFin: e.target.value })
+              }
+            />
+          </label>
+        </div>
 
-      <label>
-        End Year:
-        <input
-          type="number"
-          value={timeline.anioFin}
-          onChange={(e) =>
-            setTimeline({ ...timeline, anioFin: e.target.value })
-          }
-        />
-      </label>
+        <div className="segment_year_inputs">
+          <label>
+            Segmentos de año
+            <input
+              type="number"
+              min="1"
+              value={timeline.yearSegments}
+              onChange={(e) =>
+                setTimeline({ ...timeline, yearSegments: Number(e.target.value) })
+              }
+            />
+          </label>
+          <span className="tooltip-icon">?</span>
+          <span className="tooltip-text">
+            The number of years each segment in the timeline represents.
+          </span>
+        </div>
 
-      <label>
-        Segmentos de año:
-        <input
-          type="number"
-          min="1"
-          value={timeline.yearSegments}
-          onChange={(e) =>
-            setTimeline({ ...timeline, yearSegments: Number(e.target.value) })
-          }
-        />
-      </label>
-
-      <div className="modal-actions">
-        <button onClick={handleCreate}>Create</button>
+        <div className="modal-actions">
+          <button className="secondary_button light" onClick={onClose}>Cancel</button>
+          <button className="secondary_button dark" onClick={handleCreate}>Create</button>
+        </div>
       </div>
-    </Modal>
+    </div>
   );
 }

@@ -1,5 +1,6 @@
 @import './styles/_variables.scss';
 @import './styles/_keyframe-animations.scss';
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 
 *{
   margin: 0;
@@ -8,7 +9,7 @@
 }
 
 body{
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Open Sans", Avenir, Helvetica, Arial, sans-serif !important;
   line-height: 1.5;
   font-weight: 400;
   display: flex;
@@ -16,6 +17,11 @@ body{
   min-height: 0;
 
 }
+
+:is(h1, h2, h3, h4, h5, h6) {
+  font-family: "Montserrat", Avenir, Helvetica, Arial, sans-serif !important;
+}
+
 
 #root{
   flex-grow: 1;

@@ -12,7 +12,7 @@ export default class Timeline {
     elements = [] 
   }) {
     if (!name || !anioInicio || !anioFin) {
-      throw new Error("Timeline requires a name, anioInicio, and anioFin");
+      throw new Error("Timeline requires a name, a beginning year and an end year");
     }
 
     this.id = id || Timeline.generateId();

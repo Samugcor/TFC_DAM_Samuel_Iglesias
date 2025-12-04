@@ -31,6 +31,7 @@
   }
 
   &[data-variant="fixed"] {
+    box-shadow: 0 4px 6px rgba(135, 135, 135, 0.1);
     position: sticky;
     top: 0;
     z-index: 10;
@@ -39,7 +40,12 @@
     background: var(--tt-toolbar-bg-color);
     border-bottom: 1px solid var(--tt-toolbar-border-color);
     padding: 0 0.5rem;
-    overflow-x: auto;
+
+     display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+
+    overflow-x: hidden;
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;

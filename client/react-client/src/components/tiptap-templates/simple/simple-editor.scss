@@ -56,8 +56,16 @@ body,
 
 .simple-editor-wrapper {
   width: 100vw;
-  height: 100vh;
   overflow: auto;
+  border: 1px solid #ccc; /* outer yellow border */
+  border-radius: 20px;       /* optional rounded corners */
+  overflow: hidden;  
+}
+
+.simple-editor-content .ProseMirror.ProseMirror-focused {
+  outline: none;      /* remove default black outline */
+  box-shadow: none;   /* remove any shadow if applied */
+  border-color: #ccc; /* keep your existing border color */
 }
 
 .simple-editor-content {

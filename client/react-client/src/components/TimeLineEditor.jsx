@@ -11,6 +11,8 @@ import Timeline from "../classes/TimeLine";
 import Evento from "../classes/Evento";
 import EventEditor from "./EventEditor";
 
+import logo from '../assets/logo.svg';
+
 export default function TimeLine() {
     const { session } = useSession(); // is a guest or a logged in user?
     const { canvasId } = useParams(); // from /timeline/:canvasId
@@ -54,15 +56,21 @@ export default function TimeLine() {
 
     //Handlers
     const handleCreateTimeline = (timelineData) => {
-      const newTimeline = new Timeline(timelineData); 
-      
-      if (session.type === "guest") {
-          localStorage.setItem("guestCanvas", JSON.stringify(newTimeline.toJSON())); 
+      try {
+        const newTimeline = new Timeline(timelineData); 
+        if (session.type === "guest") {
+            localStorage.setItem("guestCanvas", JSON.stringify(newTimeline.toJSON())); 
+        }
+
+        setSelectedEvent(null);
+        setTimeLine(newTimeline); 
+        setShowCreateModal(false);
+      } catch (error) {
+        setError(`${error.message}`)
       }
       
-      setSelectedEvent(null);
-      setTimeLine(newTimeline); 
-      setShowCreateModal(false);
+      
+      
     };
 
     //UseEffects
@@ -113,7 +121,7 @@ export default function TimeLine() {
 
     useEffect(() => {
         //Antes de mostrar un modal comprobamos que no estamos cargando datos, que hay datos y que no ha habido un error
-        if (!loading && timeLine === null && !error) setShowCreateModal(true);
+        if (!loading && timeLine === null && !error && session.type !== "guest") setShowCreateModal(true);
     }, [timeLine, error, loading]);
     
     console.log("t is t",timeLine instanceof Timeline);
@@ -127,19 +135,27 @@ export default function TimeLine() {
     //console.log(timeLine.printEvents());
     return(
         <div className="time-line-editor">
-            <div className="head">
-                name:{session.type}
-                {session.type === "guest" && (
-                    <button onClick={() => setShowCreateModal(true)}>new timeline</button>
-                )}
-                {timeLine && (
-                  <div className="timeline-info">
-                    <p><strong>Timeline:</strong> {timeLine.name}</p>
-                    <p>{timeLine.description}</p>
-                    <p><em>{timeLine.anioInicio} - {timeLine.anioFin}</em></p>
-                  </div>
-                )}
+          <div className="head">
+            <div className="logo_container">
+              <img src={logo} alt="Lime-Line logo" />
             </div>
+
+            {timeLine && (
+              <div className="timeline-info">
+                
+                <p>Your timeline <strong>{timeLine.name}</strong> goes from <strong>{timeLine.anioInicio}</strong> to <strong>{timeLine.anioFin}</strong>. It has <strong>{timeLine.elements.length}</strong> events.</p>
+              </div>
+            )}
+            
+
+            {session.type === "guest" && timeLine && (
+              <div style={{display:"flex", gap:"10px"}}>
+                <button className="secondary_button lightest" onClick={() => setShowCreateModal(true)}><span>New timeline</span></button>
+                <button className="secondary_button dark" ><span>Log in</span></button>
+              </div>
+            )}
+            
+          </div>
             <div className="editor-body">
                 <div className="canvas-editor">
                     {timeLine ? 
@@ -150,7 +166,11 @@ export default function TimeLine() {
                           addEvent={addEvent}
                         />) 
                         : 
-                        (<div className="empty-placeholder">No timeline selected</div>)
+                        (<div className="no-timeline">
+                            <button className="secondary_button lightest" onClick={() => setShowCreateModal(true)}><span>+ Start timeline</span></button>
+                            <button className="secondary_button lightest" ><span>Import timeline</span></button>
+
+                          </div>)
                     }
                 </div>
                 <div className="event-editor" style={{flex: selectedEvent ? " 0 1 40%" : " 0 1 0"}}>

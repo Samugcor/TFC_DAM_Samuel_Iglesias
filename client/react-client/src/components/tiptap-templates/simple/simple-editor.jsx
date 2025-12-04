@@ -68,7 +68,6 @@ import "@/components/tiptap-templates/simple/simple-editor.scss"
 
 const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile }) => (
   <>
-    <Spacer />
     <ToolbarGroup>
       <UndoRedoButton action="undo" />
       <UndoRedoButton action="redo" />
@@ -106,15 +105,9 @@ const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile }) => (
       <TextAlignButton align="right" />
       <TextAlignButton align="justify" />
     </ToolbarGroup>
-    <ToolbarSeparator />
-    <ToolbarGroup>
-      <ImageUploadButton text="Add" />
-    </ToolbarGroup>
     <Spacer />
     {isMobile && <ToolbarSeparator />}
-    <ToolbarGroup>
-      <ThemeToggle />
-    </ToolbarGroup>
+    
   </>
 )
 
@@ -196,7 +189,7 @@ function SimpleEditorComponent({ value = "", onChange }) {
    }, [editor, value]);
 
   return (
-    <div className="simple-editor-wrapper" style={{ width: "100%", height: "200px", display: "flex", flexDirection: "column" }}>
+    <div className="simple-editor-wrapper" style={{ width: "100%", display: "flex", flexDirection: "column" }}>
       <EditorContext.Provider value={{ editor }}>
         <Toolbar
           ref={toolbarRef}
@@ -220,7 +213,7 @@ function SimpleEditorComponent({ value = "", onChange }) {
           editor={editor}
           role="presentation"
           className="simple-editor-content"
-          style={{ flex: 1, overflowY: "auto", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
+          style={{ flex: 1, overflowY: "auto", padding: "8px", border: "none", borderRadius: "4px" }}
         />
       </EditorContext.Provider>
     </div>

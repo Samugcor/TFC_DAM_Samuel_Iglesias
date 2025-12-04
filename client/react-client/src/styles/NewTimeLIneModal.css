@@ -1,0 +1,92 @@
+.modal-content {
+    
+    background: white;
+    border-radius: 20px;
+
+    width: 50%;
+    padding: 50px 50px 25px 50px;
+  
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 15px;
+  
+}
+.modal-content label{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+.modal-content input, textarea{
+    font-size: 1rem;
+  padding: 8px;
+  width: 100%;
+  background-color: #EFEFEF;
+  border: 1px solid #EFEFEF;
+  border-radius: 9px;
+  outline: none;
+  margin-top:  8px;
+}
+.year_inputs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  
+  text-align: center;
+}
+.year_inputs label {
+  width: 30%;
+}
+
+.segment_year_inputs{
+    height: 80px ;
+    width: 100%;
+    display: flex;
+    justify-content: left;
+    gap: 5px;
+}
+.segment_year_inputs label{
+    flex-grow: 0;
+    flex-shrink: 0;
+    width: auto;
+}
+.segment_year_inputs input{
+    width: 80px;
+    text-align: center;
+}
+
+.tooltip-icon {
+  margin-top: 8px;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(to bottom,#CCE59F, #85E2CD);
+  color: white;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 18px;
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.tooltip-text {
+  display: none;
+  margin-left: 10px;
+  
+  
+}
+
+.tooltip-icon:hover  + .tooltip-text {
+  display: block;
+  font-size: 12px;
+  color: gray;
+  flex-grow: 0;
+}
+
+
+.modal-actions {
+    width: 100%;
+    display: flex;
+    justify-content: right;
+    gap: 10px;
+}

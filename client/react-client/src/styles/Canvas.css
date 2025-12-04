@@ -1,10 +1,8 @@
+
 canvas {
   width: 100%;
   height: 100%;
   display: block; /* removes weird spacing */
-}
-
-.canvas_toolbar{
-  position: absolute;
-  top:10px;
+  border-radius: var(--border_radius);
+  
 }

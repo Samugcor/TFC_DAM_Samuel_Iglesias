@@ -16,7 +16,7 @@ const LINE_WORLD_Y = 500; // Fixed world Y coordinate for the timeline center
 
 export default function Canvas({ timeline, setSelectedEvent, addEvent, options = {}, onViewportChange }) {
   //States -----------------------------------------------------------
-   const [activeTool, setActiveTool] = useState(TOOLS.PAN);
+   const [activeTool, setActiveTool] = useState(TOOLS.PAN.KEY);
 
   //References--------------------------------------------------------
   const canvasRef = useRef(null);
@@ -342,8 +342,8 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
     if (isMiddleButton) {
       prevToolRef.current = activeToolRef.current;
 
-      activeToolRef.current = TOOLS.PAN;
-      setActiveTool(TOOLS.PAN);
+      activeToolRef.current = TOOLS.PAN.KEY;
+      setActiveTool(TOOLS.PAN.KEY);
 
       isMidPanning.current = true;
       dragging.current = true;
@@ -353,7 +353,7 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
       return;
     }
 
-    if (tool === TOOLS.SELECT){
+    if (tool === TOOLS.SELECT.KEY){
       const events = timeline.getSortedEvents();
 
       for (const ev of events) {
@@ -374,7 +374,7 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
 
     }
 
-    if (tool === TOOLS.PAN) {
+    if (tool === TOOLS.PAN.KEY) {
       dragging.current = true;
       lastPointer.current = { x: e.clientX, y: e.clientY };
       e.target.setPointerCapture?.(e.pointerId);
@@ -383,13 +383,13 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
       console.log(`Tool ${tool} started at: ${e.clientX}, ${e.clientY}`);
     }
 
-    if (tool === TOOLS.NEWEVENT) {
+    if (tool === TOOLS.NEWEVENT.KEY) {
       // Convert canvas coordinate → year
       const normX = canvasToNormalizedX(canvasX);
       const year = timeline.yearForNormalizedPosition(normX);  
 
       addEvent(year);
-      setActiveTool(TOOLS.PAN);
+      setActiveTool(TOOLS.PAN.KEY);
       return;
     }
   }
@@ -397,7 +397,7 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
   function handlePointerMove(e) {
     const tool = activeToolRef.current;
 
-    if (tool === TOOLS.PAN && dragging.current) {
+    if (tool === TOOLS.PAN.KEY && dragging.current) {
       const dx = e.clientX - lastPointer.current.x;
       const dy = e.clientY - lastPointer.current.y;
       
@@ -407,7 +407,7 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
       lastPointer.current = { x: e.clientX, y: e.clientY };
       scheduleRedraw();
       if (onViewportChange) onViewportChange({ ...viewPort.current });
-    } else if (tool !== TOOLS.PAN && dragging.current) {
+    } else if (tool !== TOOLS.PAN.KEY && dragging.current) {
       // 🟢 TOOL ACTION MOVE
     }
   }
@@ -430,10 +430,10 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
         return;
     }
 
-    if (tool === TOOLS.PAN) {
+    if (tool === TOOLS.PAN.KEY) {
       dragging.current = false;
       e.target.releasePointerCapture?.(e.pointerId);
-    } else if (tool !== TOOLS.PAN && dragging.current) {
+    } else if (tool !== TOOLS.PAN.KEY && dragging.current) {
       // 🟢 TOOL ACTION END
       console.log(`Tool ${tool} finished at: ${e.clientX}, ${e.clientY}`);
     }
@@ -443,7 +443,7 @@ export default function Canvas({ timeline, setSelectedEvent, addEvent, options =
     const tool = activeToolRef.current;
 
     
-    if (e.ctrlKey && tool === TOOLS.PAN) {
+    if (e.ctrlKey && tool === TOOLS.PAN.KEY) {
       e.preventDefault();
 
       const canvas = canvasRef.current;

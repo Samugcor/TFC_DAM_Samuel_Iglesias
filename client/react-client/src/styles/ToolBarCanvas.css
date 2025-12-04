@@ -1,0 +1,46 @@
+
+.canvas_toolbar{
+  position: absolute;
+  top:10px;
+
+  border: 1px solid #85E2CD;
+  padding: 5px 20px;
+  border-radius: 50px;
+
+  display: flex;
+  justify-content: center;
+}
+
+.canvas_toolgroup{
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    border-left: 2px solid #EFEFEF;
+    padding: 0px 15px;
+}
+.canvas_toolgroup:first-of-type{
+    display: flex;
+    justify-content: center;
+    border-left: none;;
+}
+
+.canvas_tool{
+    
+    background: white;
+    border: none;
+    cursor: pointer;
+
+    padding: 8px;
+    border-radius: 8px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+.canvas_tool:hover{
+    background: #F4F4F4;
+}
+.canvas_tool.active{
+    background: #EFEFEF;
+}

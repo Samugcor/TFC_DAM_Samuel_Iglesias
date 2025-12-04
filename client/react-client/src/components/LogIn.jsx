@@ -2,6 +2,10 @@ import { useState } from "react";
 import "../styles/Login.css";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "../context/sessionContext";
+import logo from '../assets/logo.svg';
+import Icon_OctagonX from '../assets/octagon-x.svg?react';
+import Icon_github from '../assets/github.svg?react';
+import Icon_linkedin from '../assets/linkedin.svg?react';
 
 
 export default function LogIn() {
@@ -50,7 +54,7 @@ export default function LogIn() {
       <div className="login-box">
         <div className="login-left">
 
-          <h1 className="brand-title">Lime Line</h1>
+          <img className="login_logo" src={logo} alt="lime-line logo"/>
 
           <form className="login-form" onSubmit={handleSubmit}>
             <label>Email</label>
@@ -70,7 +74,10 @@ export default function LogIn() {
             />
 
             {error ? (
-              <p className="error-text">{error}</p>
+              <div className="error-message">
+                <Icon_OctagonX className="error-icon" />
+                <p className="error-text">{error}</p>
+              </div>
             ) : (
               <div className="login-buttons-row">
                 <button className="login-btn primary" type="submit">
@@ -95,8 +102,11 @@ export default function LogIn() {
         </div>
 
         <div className="login-right">
-          <div className="icon"></div>
-          <div className="icon"></div>
+          <div className="quotes"></div>
+          <div className="social_icons">
+            <Icon_github className="social_icon" onClick={() => window.open("https://github.com/Samugcor/TFC_DAM_Samuel_Iglesias", "_blank")} />
+            <Icon_linkedin className="social_icon" onClick={() => window.open("https://www.linkedin.com/in/samuel-i-b0372a23a/", "_blank")} />
+          </div>
           
         </div>
 

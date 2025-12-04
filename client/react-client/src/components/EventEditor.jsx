@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { SimpleEditor } from "./tiptap-templates/simple/simple-editor";
 import ColorInput from "./ColorInput"
+import '../styles/EventEditor.css';
 
 export default function EventEditor({ event, onChange, onClose }) {
   const [title, setTitle] = useState(event.title);
@@ -34,10 +35,11 @@ export default function EventEditor({ event, onChange, onClose }) {
   
   return (
     <div className="event-editor-panel">
-      <h3>Edit Event</h3>
 
-      <label>Title</label>
+      
       <input
+        className="title_input"
+        //style={{ color: color }} 
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
@@ -45,6 +47,8 @@ export default function EventEditor({ event, onChange, onClose }) {
 
       <label>Year</label>
       <input
+      className="input_field"
+        style={{width: "85px"}}
         type="number"
         value={year}
         onChange={(e) => setYear(e.target.value)}
@@ -61,8 +65,8 @@ export default function EventEditor({ event, onChange, onClose }) {
       <ColorInput color={color} onChange={setColor} /> 
 
       <div className="event-editor-actions">
-        <button onClick={onClose}>Cancel</button>
-        <button onClick={handleSave}>Save</button>
+        <button className="secondary_button light" onClick={onClose}>Cancel</button>
+        <button className="secondary_button dark" onClick={handleSave}>Save</button>
       </div>
     </div>
   );

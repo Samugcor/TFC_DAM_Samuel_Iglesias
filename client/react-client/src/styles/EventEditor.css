@@ -1,14 +1,94 @@
-.simple-editor-wrapper {
-  width: 100%;
-  height: 200px; /* or whatever fits your panel */
-  display: flex;
-  flex-direction: column;
+
+
+.event-editor-panel {
+    --border_width: 1px;
+    --border_radius: 20px;
+
+    height: 100%;
+    margin-left: 15px;
+    padding: 30px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    background: white;
+    
+
+    position: relative;
+    border-radius: var(--border_radius);
+    overflow: hidden; /* ensures pseudo-element stays within border radius */
 }
 
-.simple-editor-content {
-  flex: 1; /* fill the remaining space */
-  overflow-y: auto;
+.event-editor-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: var(--border_width);
+    border-radius: inherit;
+    background: linear-gradient(to left,#CCE59F, #85E2CD);
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none; /* allows clicks through */
+}
+
+label {
+  margin-top: 5px;
+}
+.title_input {
+  font-size: 2rem;
+  font-weight: 600;
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid #85E2CD;
+  outline: none;
+}
+.input_field {
+  font-size: 1rem;
   padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  width: 100%;
+  background-color: #EFEFEF;
+  border: 1px solid #EFEFEF;
+  border-radius: 9px;
+  outline: none;
+}
+
+.event-editor-actions{
+    margin-top: auto;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+.color-input_container{
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.color-input_container>label{
+  margin-top: 0px;
+}
+
+.color_input {
+  -webkit-appearance: none; /* remove default styling in WebKit */
+  -moz-appearance: none; /* remove default styling in Firefox */
+  appearance: none;
+  --tamanio:40px;
+  width: var(--tamanio);
+  max-width: var(--tamanio);
+  min-height: var(--tamanio);
+  height: var(--tamanio);
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  margin: 0;
+  
+  background-color: white; /* fallback if color not applied yet */
+}
+.color_input::-webkit-color-swatch {
+  border-radius: 50px;
+  border: none;
 }
