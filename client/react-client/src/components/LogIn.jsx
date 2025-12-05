@@ -7,6 +7,7 @@ import image9 from '../assets/image 9.png';
 import Icon_OctagonX from '../assets/octagon-x.svg?react';
 import Icon_github from '../assets/github.svg?react';
 import Icon_linkedin from '../assets/linkedin.svg?react';
+import WoringOnIt from "./WorkingOnIt";
 
 
 export default function LogIn() {
@@ -16,6 +17,8 @@ export default function LogIn() {
   const navigate = useNavigate();
   const { setSession } = useSession();
   const [quotes, setQuotes] = useState("");
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -103,7 +106,8 @@ export default function LogIn() {
                 <button
                   type="button"
                   className="login-btn secondary"
-                  onClick={() => navigate("/register")}
+                  //onClick={() => navigate("/register")}
+                  onClick={() => setShowRegisterModal(true)}
                 >
                   Create account
                 </button>
@@ -134,6 +138,11 @@ export default function LogIn() {
         </div>
 
       </div>
+      {showRegisterModal && (
+        <WoringOnIt
+          onClose={() => setShowRegisterModal(false)}
+        />
+      )}
     </div>
   );
 }

@@ -1,0 +1,38 @@
+.mymodal{
+    padding: 15px 15px 15px 15px;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    max-width: 50%;
+}
+.mymodal .button_close{
+    height: 25px;
+    width: 25px;
+    border: none;
+    background-color: white;
+    border-radius: 50px;
+    align-self: end;
+}
+.modal_message{
+    padding: 20px 40px 40px 40px;
+}
+
+.mymodal.error_modal{
+    background: #fcc9c0;
+}
+.error_modal h2{
+    color: #f37863;
+}
+.error_modal .button_close{
+    color: #f37863;
+}
+
+.mymodal.working_modal{
+    background: #fef6d5;
+}
+.working_modal h2{
+    color: #ffa928;
+}
+.working_modal .button_close{
+    color: #ffa928;
+}

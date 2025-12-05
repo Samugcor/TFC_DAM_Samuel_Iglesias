@@ -8,6 +8,8 @@ import icon_mouse_pointer from '../assets/mouse-pointer.svg';
 import icon_hand from '../assets/hand.svg';
 import icon_escribir from '../assets/type.svg';
 import icon_evento from '../assets/map-pin-plus-inside.svg';
+import { useState } from 'react';
+import WorkingOnIt from './WorkingOnIt';
 
 // Define the available tools
 export const TOOLS = {
@@ -20,7 +22,9 @@ export const TOOLS = {
 };
 
 export default function Toolbar({ activeTool, setActiveTool }) {
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
   return (
+    <>
     <div className='canvas_toolbar'>
       <div className='canvas_toolgroup'>
         {Object.values(TOOLS).map(TOOL => (
@@ -36,6 +40,7 @@ export default function Toolbar({ activeTool, setActiveTool }) {
       </div>
       <div className='canvas_toolgroup'>
         <button
+          onClick={() => setShowDownloadModal(true)}
           className='canvas_tool'
           title='Download'>
             <img src={icon_download} alt="download" />
@@ -43,5 +48,11 @@ export default function Toolbar({ activeTool, setActiveTool }) {
       </div>
       
     </div>
+    {showDownloadModal && (
+      <WorkingOnIt
+        onClose={() => setShowDownloadModal(false)}
+      />
+    )}
+    </>
   );
 }

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import NewTimeLineModal from "./NewTimeLineModal";
+import WoringOnIt from "./WorkingOnIt";
 import ErrorModal from "./ErrorModal";
 
 import Timeline from "../classes/TimeLine";
@@ -22,6 +23,7 @@ export default function TimeLine() {
     const [loading, setLoading] = useState(true);
 
     const [error, setError] = useState("");
+    const [showImportModal, setShowImportModal] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
 
     //Modificaciones linea temporal
@@ -190,7 +192,7 @@ export default function TimeLine() {
             {session.type === "guest" && timeLine && (
               <div style={{display:"flex", gap:"10px"}}>
                 <button className="secondary_button lightest" onClick={() => setShowCreateModal(true)}><span>New timeline</span></button>
-                <button className="secondary_button dark" ><span>Log in</span></button>
+                <button className="secondary_button dark" onClick={() => setShowImportModal(true)}><span>Log in</span></button>
               </div>
             )}
             
@@ -207,7 +209,7 @@ export default function TimeLine() {
                         : 
                         (<div className="no-timeline">
                             <button className="secondary_button lightest" onClick={() => setShowCreateModal(true)}><span>+ Start timeline</span></button>
-                            <button className="secondary_button lightest" ><span>Import timeline</span></button>
+                            <button className="secondary_button lightest" onClick={() => setShowImportModal(true)}><span>Import timeline</span></button>
 
                           </div>)
                     }
@@ -232,6 +234,11 @@ export default function TimeLine() {
               />
             )}
             {error && <ErrorModal message={error} onClose={() => setError("")} />}
+            {showImportModal && (
+              <WoringOnIt
+                onClose={() => setShowImportModal(false)}
+              />
+            )}
 
         </div>
     );
