@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "../styles/Login.css";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "../context/sessionContext";
 import logo from '../assets/logo.svg';
+import image9 from '../assets/image 9.png';
 import Icon_OctagonX from '../assets/octagon-x.svg?react';
 import Icon_github from '../assets/github.svg?react';
 import Icon_linkedin from '../assets/linkedin.svg?react';
@@ -14,6 +15,7 @@ export default function LogIn() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { setSession } = useSession();
+  const [quotes, setQuotes] = useState("");
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -47,6 +49,21 @@ export default function LogIn() {
     });
     navigate("/timeline");
   }
+
+  useEffect(() => {
+    async function loadQuotes() {
+      try {
+      //  const res = await fetch("http://localhost:8080/quotes/random");
+      //  if (!res.ok) throw new Error("Failed to load quotes");
+      //  const data = await res.json(); 
+      //  setQuotes(data);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    loadQuotes();
+  }, []);
 
   return (
     <div className="login-container">
@@ -102,7 +119,13 @@ export default function LogIn() {
         </div>
 
         <div className="login-right">
-          <div className="quotes"></div>
+          <div className="quotes">
+            {quotes ? (<>
+              <p className="quote-text">"{quotes.text}"</p>
+              <p className="quote-author">- {quotes.author}</p>
+            </>):
+            (<img src={image9} alt="photo"/>)}
+          </div>
           <div className="social_icons">
             <Icon_github className="social_icon" onClick={() => window.open("https://github.com/Samugcor/TFC_DAM_Samuel_Iglesias", "_blank")} />
             <Icon_linkedin className="social_icon" onClick={() => window.open("https://www.linkedin.com/in/samuel-i-b0372a23a/", "_blank")} />
