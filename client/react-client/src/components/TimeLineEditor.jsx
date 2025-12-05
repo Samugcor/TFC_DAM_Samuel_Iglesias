@@ -182,7 +182,7 @@ export default function TimeLine() {
             {timeLine && (
               <div className="timeline-info">
                 
-                <p>Your timeline <strong>{timeLine.name}</strong> goes from <strong>{timeLine.anioInicio}</strong> to <strong>{timeLine.anioFin}</strong>. It has <strong>{timeLine.elements.length}</strong> events.</p>
+                <p>Your timeline <strong>{timeLine.name}</strong> goes from <strong>{timeLine.anioInicio}</strong> to <strong>{timeLine.anioFin}</strong>. It has <strong>{timeLine.events.length}</strong> events.</p>
               </div>
             )}
             
