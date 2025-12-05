@@ -59,3 +59,21 @@
   background-color: #044577;
   color: white;
 }
+
+.close_icon{
+  margin-left: auto;
+  stroke: #F9897B;
+  cursor: pointer;
+  padding: 3px;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  border-radius: 50px;
+  border: 1px solid white;
+  transition: all 0.3s ease;
+}
+.close_icon:hover{
+  margin-left: auto;
+  border: 1px solid #F9897B;
+  padding: 5px;
+}

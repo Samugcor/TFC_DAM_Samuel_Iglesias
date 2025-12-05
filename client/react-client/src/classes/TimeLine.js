@@ -70,6 +70,22 @@ export default class Timeline {
     this.events[index] = updatedEvent instanceof Event ? updatedEvent : new Event(updatedEvent);
   }
 
+  deleteEvent(eventId) {
+    if (!eventId) {
+      throw new Error("deleteEvent requires a valid event id");
+    }
+
+    const index = this.events.findIndex(ev => ev.id === eventId);
+
+    if (index === -1) {
+      throw new Error(`deleteEvent: event not found: ${eventId}`);
+    }
+  
+    this.events.splice(index, 1);
+  }
+
+
+  // ELEMENTOS __________________________________________________
   addElement(el) {
     this.elements.push(el);
   }

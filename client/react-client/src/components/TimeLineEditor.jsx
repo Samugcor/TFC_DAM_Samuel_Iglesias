@@ -75,9 +75,25 @@ export default function TimeLine() {
       if (session.type === "guest") {
         localStorage.setItem("guestCanvas", JSON.stringify(timelineCopy.toJSON())); 
       }
-
       
-    }
+    };
+
+    const deleteEvent = (eventId) => {
+      if (!timeLine) {
+        console.error("No timeline available to delete event from");
+        return;
+      }
+
+      const timelineCopy = new Timeline(timeLine.toJSON());
+      timelineCopy.id = Timeline.generateId();
+      timelineCopy.deleteEvent(eventId);
+      setTimeLine(timelineCopy);
+
+      if (session.type === "guest") {
+        localStorage.setItem("guestCanvas", JSON.stringify(timelineCopy.toJSON())); 
+      }
+
+    };
 
     //Handlers
     const handleCreateTimeline = (timelineData) => {
@@ -201,6 +217,7 @@ export default function TimeLine() {
                         <EventEditor
                           event={selectedEvent}
                           onChange={updateEvent}
+                          onDelete={deleteEvent}
                           onClose={() => setSelectedEvent(null)}
                         />
                     )}
